@@ -1,6 +1,4 @@
-package xyz.uthofficial.arnyan.env
-
-import xyz.uthofficial.arnyan.env.tiles.TileType
+package xyz.uthofficial.arnyan.env.tiles
 
 class TileSetConfiguration {
     private val buildBlocks: MutableList<TileSetConfiguration.() -> Unit> = mutableListOf()
@@ -11,7 +9,7 @@ class TileSetConfiguration {
         return this
     }
 
-    infix fun repeat(amount: Int): TileSetConfiguration {
+    infix fun repeatFor(amount: Int): TileSetConfiguration {
         buildBlocks.add {
             composition.forEach { (_, ints) ->
                 val originTiles = ints.toList()
@@ -20,6 +18,19 @@ class TileSetConfiguration {
         }
 
         return this
+    }
+
+    fun build(): TileWall {
+        buildBlocks.forEach { this.it() }
+
+        val tileWall = TileWall()
+        composition.forEach { (type, values) ->
+            values.forEach {
+                tileWall.add(Tile(type, it))
+            }
+        }
+
+        return tileWall
     }
 
     infix fun Iterable<Int>.of(tileType: TileType) {

@@ -1,7 +1,7 @@
 package xyz.uthofficial.arnyan.env.riichi
 
 import xyz.uthofficial.arnyan.env.Match
-import xyz.uthofficial.arnyan.env.TileSetConfiguration
+import xyz.uthofficial.arnyan.env.tiles.TileSetConfiguration
 import xyz.uthofficial.arnyan.env.tiles.TileType.*
 
 class RiichiMatch(private val playersList: ThreePlayersList) : Match {
@@ -10,21 +10,17 @@ class RiichiMatch(private val playersList: ThreePlayersList) : Match {
         1..9 of (PIN and SOU)
         1..4 of WIND
         1..3 of DRAGON
-    } repeat 4
+    } repeatFor 4
 
+    private var _isEnded: Boolean = false
     override var isEnded: Boolean
-        get() = TODO("Not yet implemented")
-        private set(value) = TODO()
+        get() = _isEnded
+        private set(value) {
+            _isEnded = value
+        }
 
     override fun initialize(): Match {
-        playersList.forEach {
-
-        }
+        configuration.build() deal 13 randomlyTo playersList
         TODO("Not yet implemented")
     }
-
-    override fun deal(randomSeed: Int): Match {
-        TODO("Not yet implemented")
-    }
-
 }

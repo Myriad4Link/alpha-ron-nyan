@@ -98,5 +98,36 @@ class TileSetConfigurationIntegrationTest : FunSpec({
         p1.hand.size shouldBe dealAmount
         p2.hand.size shouldBe dealAmount
         wall.size shouldBe initialSize - (dealAmount * 2)
+
+        logger.info("P1 hand: {}\nP2 hand: {}\nWall: {}", p1.hand, p2.hand, wall.tileWall)
+    }
+
+    test("should correctly configure red doras for single type") {
+        val wall = ( (TileSetConfiguration().setGroup {
+            1..9 of MAN
+        } repeatFor 4)
+            .whereEvery { listOf(MAN) } has 1 redDoraOn 5 )
+            .build()
+
+        val redMan5 = wall.tileWall.filter { it.tileType == MAN && it.value == 5 && it.isAka }
+        redMan5.size shouldBe 1
+
+        val normalMan5 = wall.tileWall.filter { it.tileType == MAN && it.value == 5 && !it.isAka }
+        normalMan5.size shouldBe 3
+
+        logger.info("Wall with red dora Pins: {}", wall.tileWall)
+    }
+
+    test("should correctly configure red doras for multiple types") {
+        val wall = ( (TileSetConfiguration().setGroup {
+            1..9 of (MAN and PIN)
+        } repeatFor 4)
+            .whereEvery { MAN and PIN } has 1 redDoraOn 5 )
+            .build()
+
+        wall.tileWall.count { it.tileType == MAN && it.isAka } shouldBe 1
+        wall.tileWall.count { it.tileType == PIN && it.isAka } shouldBe 1
+
+        logger.info("Wall with red dora Pins and Mans: {}", wall.tileWall)
     }
 })

@@ -10,7 +10,7 @@ class RiichiMatch(private val playersList: ThreePlayersList) : Match {
         1..9 of (PIN and SOU)
         1..4 of WIND
         1..3 of DRAGON
-    } repeatFor 4
+    } repeatFor 4 whereEvery { PIN and SOU } has 1 redDoraOn 5
 
     private var _isEnded: Boolean = false
     override var isEnded: Boolean

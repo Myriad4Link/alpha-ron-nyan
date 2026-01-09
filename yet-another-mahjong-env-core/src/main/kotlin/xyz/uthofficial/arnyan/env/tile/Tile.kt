@@ -1,4 +1,4 @@
-package xyz.uthofficial.arnyan.env.tiles
+package xyz.uthofficial.arnyan.env.tile
 
 data class Tile(
     val tileType: TileType,

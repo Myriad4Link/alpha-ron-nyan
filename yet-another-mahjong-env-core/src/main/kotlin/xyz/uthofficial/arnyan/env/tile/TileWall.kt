@@ -1,6 +1,6 @@
-package xyz.uthofficial.arnyan.env.tiles
+package xyz.uthofficial.arnyan.env.tile
 
-import xyz.uthofficial.arnyan.env.player.PlayerList
+import xyz.uthofficial.arnyan.env.player.Player
 
 class TileWall {
     private val tiles = ArrayDeque<Tile>()
@@ -21,7 +21,7 @@ class TileWall {
     infix fun deal(amount: Int): Dealer = Dealer(amount, this)
 
     class Dealer(private val amount: Int, private val wall: TileWall) {
-        infix fun randomlyTo(players: PlayerList): Result<Unit> = runCatching {
+        infix fun randomlyTo(players: List<Player>): Result<Unit> = runCatching {
             wall.tiles.shuffle()
 
             players.forEach {

@@ -1,4 +1,4 @@
-package xyz.uthofficial.arnyan.env.tiles
+package xyz.uthofficial.arnyan.env.tile
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainInOrder
@@ -9,8 +9,7 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import org.slf4j.LoggerFactory
 import xyz.uthofficial.arnyan.env.player.Player
-import xyz.uthofficial.arnyan.env.player.PlayerList
-import xyz.uthofficial.arnyan.env.tiles.TileType.*
+import xyz.uthofficial.arnyan.env.tile.TileType.*
 
 class TileSetConfigurationIntegrationTest : FunSpec({
     fun buildNormalTileWall(): TileWall = (TileSetConfiguration().setGroup {
@@ -86,14 +85,11 @@ class TileSetConfigurationIntegrationTest : FunSpec({
         val p1 = Player()
         val p2 = Player()
         val players = listOf(p1, p2)
-        val playerList = object : PlayerList {
-            override fun forEach(block: (Player) -> Unit) = players.forEach(block)
-        }
 
         val initialSize = wall.size
         val dealAmount = 13
 
-        ((wall deal dealAmount) randomlyTo playerList).shouldBeSuccess()
+        ((wall deal dealAmount) randomlyTo players).shouldBeSuccess()
 
         p1.hand.size shouldBe dealAmount
         p2.hand.size shouldBe dealAmount

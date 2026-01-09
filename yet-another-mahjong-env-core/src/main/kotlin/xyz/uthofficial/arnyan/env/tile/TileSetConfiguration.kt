@@ -1,4 +1,4 @@
-package xyz.uthofficial.arnyan.env.tiles
+package xyz.uthofficial.arnyan.env.tile
 
 class TileSetConfiguration {
     private val buildBlocks: MutableList<TileSetConfiguration.() -> Unit> = mutableListOf()
@@ -43,18 +43,16 @@ class TileSetConfiguration {
         return tileWall
     }
 
-    infix fun Iterable<Int>.of(tileType: TileType): Iterable<TileType> {
-        return this of listOf(tileType)
+    infix fun Iterable<Int>.of(tileType: TileType) {
+        this of listOf(tileType)
     }
 
-    infix fun Iterable<Int>.of(tileTypes: Iterable<TileType>): Iterable<TileType> {
+    infix fun Iterable<Int>.of(tileTypes: Iterable<TileType>) {
         val numbers = this.toList()
 
         tileTypes.forEach { type ->
             composition.getOrPut(type) { mutableListOf() }.addAll(numbers)
         }
-
-        return tileTypes
     }
 
     infix fun whereEvery(tileTypesBlock: TileSetConfiguration.() -> Iterable<TileType>): RedDoraConfigurationBuilder =
@@ -84,4 +82,6 @@ class TileSetConfiguration {
         return this
     }
 
+    fun allOf(tileType: TileType) = this.allOf(listOf(tileType))
+    fun allOf(tileTypes: Iterable<TileType>) = tileTypes.forEach { it.intRange of it }
 }

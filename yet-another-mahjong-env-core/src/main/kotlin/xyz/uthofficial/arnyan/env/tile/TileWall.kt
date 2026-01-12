@@ -11,6 +11,7 @@ class TileWall {
         get() = tiles.size
 
     fun add(tile: Tile) = tiles.add(tile)
+    fun addAll(tile: Collection<Tile>) = tiles.addAll(tile)
 
     fun shuffle() = tiles.shuffle()
 

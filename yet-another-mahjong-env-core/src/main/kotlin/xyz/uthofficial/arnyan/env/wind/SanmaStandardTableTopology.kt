@@ -1,24 +1,22 @@
 package xyz.uthofficial.arnyan.env.wind
 
-class SanmaStandardTableTopology(val seatOrder: List<Wind>) : TableTopology {
-    init {
-        require(seatOrder.isNotEmpty()) { "Seat order cannot be empty" }
-        require(seatOrder.distinct().size == seatOrder.size) { "Seat order cannot contain duplicates" }
+class SanmaStandardTableTopology(override val seats: List<Wind>) : TableTopology {
+
+    override fun getShimocha(current: Wind): Result<Wind> {
+        return when (val index = seats.indexOf(current)) {
+            -1 -> Result.failure(IllegalArgumentException("Wind $current is not in the seat cycle"))
+            else -> Result.success(seats[(index + 1) % seats.size])
+        }
     }
 
-    override fun getShimocha(current: Wind): Wind {
-        val index = seatOrder.indexOf(current)
-        if (index == -1) throw IllegalArgumentException("Wind $current is not in the seat cycle")
-        return seatOrder[(index + 1) % seatOrder.size]
+    override fun getKamicha(current: Wind): Result<Wind> {
+        return when (val index = seats.indexOf(current)) {
+            -1 -> Result.failure(IllegalArgumentException("Wind $current is not in the seat cycle"))
+            else -> Result.success(seats[(index - 1 + seats.size) % seats.size])
+        }
     }
 
-    override fun getKamicha(current: Wind): Wind {
-        val index = seatOrder.indexOf(current)
-        if (index == -1) throw IllegalArgumentException("Wind $current is not in the seat cycle")
-        return seatOrder[(index - 1 + seatOrder.size) % seatOrder.size]
-    }
-
-    override fun getToimen(current: Wind): Wind {
-        throw UnsupportedOperationException("There is no Toimen in Sanma.")
+    override fun getToimen(current: Wind): Result<Wind> {
+        return Result.failure(UnsupportedOperationException("There is no Toimen in Sanma."))
     }
 }

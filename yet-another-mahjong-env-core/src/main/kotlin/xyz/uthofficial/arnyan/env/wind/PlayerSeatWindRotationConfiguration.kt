@@ -15,5 +15,14 @@ class PlayerSeatWindRotationConfiguration {
         return _rotationOrder
     }
 
-    fun build(): TableTopology = SanmaStandardTableTopology(rotationOrder)
+    fun build(): Result<TableTopology> {
+        return when {
+            rotationOrder.isEmpty() -> Result.failure(IllegalArgumentException("Seat order cannot be empty"))
+
+            rotationOrder.distinct().size != rotationOrder.size ->
+                Result.failure(IllegalArgumentException("Seat order cannot contain duplicates"))
+
+            else -> Result.success(SanmaStandardTableTopology(rotationOrder))
+        }
+    }
 }

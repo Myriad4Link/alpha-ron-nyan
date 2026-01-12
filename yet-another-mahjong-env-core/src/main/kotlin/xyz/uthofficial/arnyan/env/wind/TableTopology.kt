@@ -1,7 +1,8 @@
 package xyz.uthofficial.arnyan.env.wind
 
 interface TableTopology {
-    fun getShimocha(current: Wind): Wind
-    fun getKamicha(current: Wind): Wind
-    fun getToimen(current: Wind): Wind
+    val seats: List<Wind>
+    fun getShimocha(current: Wind): Result<Wind>
+    fun getKamicha(current: Wind): Result<Wind>
+    fun getToimen(current: Wind): Result<Wind>
 }

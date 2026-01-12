@@ -3,7 +3,7 @@ package xyz.uthofficial.arnyan.env.tile
 class TileSetConfiguration {
     private val buildBlocks: MutableList<TileSetConfiguration.() -> Unit> = mutableListOf()
     val composition: MutableMap<TileType, MutableList<Int>> = mutableMapOf()
-    var redDoraConfigurationBuilder: RedDoraConfigurationBuilder? = null
+    var akaDoraConfigurationBuilder: AkaDoraConfigurationBuilder? = null
 
     fun setGroup(block: TileSetConfiguration.() -> Unit): TileSetConfiguration {
         buildBlocks.add(block)
@@ -21,26 +21,32 @@ class TileSetConfiguration {
         return this
     }
 
-    fun build(): TileWall {
-        buildBlocks.forEach { this.it() }
+    fun build(): Result<TileWall> {
+        return runCatching {
+            buildBlocks.forEach { this.it() }
 
-        val tileWall = TileWall()
-        composition.forEach { (type, values) ->
-            val tilesForType = values.map { Tile(type, it) }
-            val redConfig = redDoraConfigurationBuilder?.redDoraConfiguration?.get(type)
+            val tileWall = TileWall()
+            // What `composition` looks like:
+            // {
+            //    "WAN": [1, 1, 1, 1, 9, 9, 9, 9],
+            //    "SOU": [1, 2, 3, ..., 9, 1, 2, 3, ..., 9, ..., 9],
+            //    ...
+            // }
+            composition.forEach { (type, values) ->
+                val akaConfig = akaDoraConfigurationBuilder?.akaDoraConfiguration?.get(type)
+                var akaQuota = akaConfig?.first ?: 0
+                val akaValueTarget = akaConfig?.second ?: -1
 
-            when {
-                redConfig != null -> {
-                    val (amountToMark, valueOn) = redConfig
-                    tilesForType.filter { it.value == valueOn }
-                        .take(amountToMark)
-                        .forEach { it.isAka = true }
+                val tiles = values.map {
+                    val isAka = (it == akaValueTarget && akaQuota > 0)
+                    if (isAka) akaQuota--
+                    Tile(type, it, isAka)
                 }
-            }
 
-            tilesForType.forEach { tileWall.add(it) }
+                tileWall.addAll(tiles)
+            }
+            tileWall
         }
-        return tileWall
     }
 
     infix fun Iterable<Int>.of(tileType: TileType) {
@@ -55,23 +61,23 @@ class TileSetConfiguration {
         }
     }
 
-    infix fun whereEvery(tileTypesBlock: TileSetConfiguration.() -> Iterable<TileType>): RedDoraConfigurationBuilder =
-        RedDoraConfigurationBuilder(tileTypesBlock(), this)
+    infix fun whereEvery(tileTypesBlock: TileSetConfiguration.() -> Iterable<TileType>): AkaDoraConfigurationBuilder =
+        AkaDoraConfigurationBuilder(tileTypesBlock(), this)
 
-    class RedDoraConfigurationBuilder(val tileTypes: Iterable<TileType>, val parent: TileSetConfiguration) {
+    class AkaDoraConfigurationBuilder(val tileTypes: Iterable<TileType>, val parent: TileSetConfiguration) {
         var amount: Int = 0
         var on: Int? = null
-        val redDoraConfiguration: MutableMap<TileType, Pair<Int, Int>> = mutableMapOf()
+        val akaDoraConfiguration: MutableMap<TileType, Pair<Int, Int>> = mutableMapOf()
 
-        infix fun has(amount: Int): RedDoraConfigurationBuilder {
+        infix fun has(amount: Int): AkaDoraConfigurationBuilder {
             this.amount = amount
             return this
         }
 
         infix fun redDoraOn(on: Int): TileSetConfiguration {
             this.on = on
-            tileTypes.forEach { redDoraConfiguration += it to (amount to on) }
-            parent.redDoraConfigurationBuilder = this
+            tileTypes.forEach { akaDoraConfiguration += it to (amount to on) }
+            parent.akaDoraConfigurationBuilder = this
             return parent
         }
     }

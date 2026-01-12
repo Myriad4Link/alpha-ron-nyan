@@ -9,14 +9,14 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import org.slf4j.LoggerFactory
 import xyz.uthofficial.arnyan.env.player.Player
-import xyz.uthofficial.arnyan.env.tile.TileType.*
+import xyz.uthofficial.arnyan.env.tile.StandardTileType.*
 
 class TileSetConfigurationIntegrationTest : FunSpec({
     fun buildNormalTileWall(): TileWall = (TileSetConfiguration().setGroup {
         1..9 of (SOU and MAN and PIN)
         1..4 of WIND
         1..3 of DRAGON
-    } repeatFor 4).build()
+    } repeatFor 4).build().getOrThrow()
 
     val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -53,7 +53,7 @@ class TileSetConfigurationIntegrationTest : FunSpec({
     test("should support combinator logic for tile types") {
         val wall = TileSetConfiguration().setGroup {
             1..2 of (MAN and PIN)
-        }.build()
+        }.build().getOrThrow()
 
         wall.size shouldBe 4
         wall.tileWall.count { it.tileType == MAN } shouldBe 2
@@ -66,6 +66,7 @@ class TileSetConfigurationIntegrationTest : FunSpec({
             .repeatFor(2)
             .setGroup { 1..1 of PIN }
             .build()
+            .getOrThrow()
 
         wall.size shouldBe 3
         wall.tileWall.count { it.tileType == MAN } shouldBe 2
@@ -73,14 +74,14 @@ class TileSetConfigurationIntegrationTest : FunSpec({
     }
 
     test("draw should return failure if not enough tiles") {
-        val wall = TileSetConfiguration().setGroup { 1..1 of MAN }.build()
+        val wall = TileSetConfiguration().setGroup { 1..1 of MAN }.build().getOrThrow()
         wall.draw(2).shouldBeFailure<NoSuchElementException>()
     }
 
     test("deal should distribute tiles to players correctly") {
         val wall = (TileSetConfiguration().setGroup {
             1..9 of MAN
-        } repeatFor 4).build()
+        } repeatFor 4).build().getOrThrow()
 
         val p1 = Player()
         val p2 = Player()
@@ -104,6 +105,7 @@ class TileSetConfigurationIntegrationTest : FunSpec({
         } repeatFor 4)
             .whereEvery { listOf(MAN) } has 1 redDoraOn 5 )
             .build()
+            .getOrThrow()
 
         val redMan5 = wall.tileWall.filter { it.tileType == MAN && it.value == 5 && it.isAka }
         redMan5.size shouldBe 1
@@ -120,6 +122,7 @@ class TileSetConfigurationIntegrationTest : FunSpec({
         } repeatFor 4)
             .whereEvery { MAN and PIN } has 1 redDoraOn 5 )
             .build()
+            .getOrThrow()
 
         wall.tileWall.count { it.tileType == MAN && it.isAka } shouldBe 1
         wall.tileWall.count { it.tileType == PIN && it.isAka } shouldBe 1

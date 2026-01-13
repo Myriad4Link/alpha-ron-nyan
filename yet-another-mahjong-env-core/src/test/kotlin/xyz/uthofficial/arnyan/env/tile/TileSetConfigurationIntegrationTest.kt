@@ -4,11 +4,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.equals.shouldNotBeEqual
-import io.kotest.matchers.result.shouldBeFailure
-import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import org.slf4j.LoggerFactory
+import xyz.uthofficial.arnyan.env.error.WallError
 import xyz.uthofficial.arnyan.env.player.Player
+import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.tile.StandardTileType.*
 
 class TileSetConfigurationIntegrationTest : FunSpec({
@@ -34,11 +35,14 @@ class TileSetConfigurationIntegrationTest : FunSpec({
         val tileWall = buildNormalTileWall()
 
         val beforeDraw = tileWall.tileWall.toMutableList()
-        tileWall.draw(13).shouldBeSuccess {
-            it.size shouldBe 13
-            it shouldBeEqual List(13) { beforeDraw.removeLast() }
-            logger.info("Chosen: {}", it)
-        }
+        val result = tileWall.draw(13)
+        
+        result.shouldBeInstanceOf<Result.Success<List<Tile>>>()
+        val value = result.value
+        
+        value.size shouldBe 13
+        value shouldBeEqual List(13) { beforeDraw.removeLast() }
+        logger.info("Chosen: {}", value)
     }
 
     test("should shuffle correctly") {
@@ -74,8 +78,9 @@ class TileSetConfigurationIntegrationTest : FunSpec({
     }
 
     test("draw should return failure if not enough tiles") {
-        val wall = TileSetConfiguration().setGroup { 1..1 of MAN }.build().getOrThrow()
-        wall.draw(2).shouldBeFailure<NoSuchElementException>()
+        val result = TileSetConfiguration().setGroup { 1..1 of MAN }.build().getOrThrow().draw(2)
+        result.shouldBeInstanceOf<Result.Failure<WallError>>()
+        result.error.shouldBeInstanceOf<WallError.NotEnoughTiles>()
     }
 
     test("deal should distribute tiles to players correctly") {
@@ -90,7 +95,7 @@ class TileSetConfigurationIntegrationTest : FunSpec({
         val initialSize = wall.size
         val dealAmount = 13
 
-        ((wall deal dealAmount) randomlyTo players).shouldBeSuccess()
+        ((wall deal dealAmount) randomlyTo players).shouldBeInstanceOf<Result.Success<Unit>>()
 
         p1.hand.size shouldBe dealAmount
         p2.hand.size shouldBe dealAmount
@@ -107,11 +112,9 @@ class TileSetConfigurationIntegrationTest : FunSpec({
             .build()
             .getOrThrow()
 
-        val redMan5 = wall.tileWall.filter { it.tileType == MAN && it.value == 5 && it.isAka }
-        redMan5.size shouldBe 1
+        wall.tileWall.filter { it.tileType == MAN && it.value == 5 && it.isAka }.size shouldBe 1
 
-        val normalMan5 = wall.tileWall.filter { it.tileType == MAN && it.value == 5 && !it.isAka }
-        normalMan5.size shouldBe 3
+        wall.tileWall.filter { it.tileType == MAN && it.value == 5 && !it.isAka }.size shouldBe 3
 
         logger.info("Wall with red dora Pins: {}", wall.tileWall)
     }
@@ -125,6 +128,7 @@ class TileSetConfigurationIntegrationTest : FunSpec({
             .getOrThrow()
 
         wall.tileWall.count { it.tileType == MAN && it.isAka } shouldBe 1
+
         wall.tileWall.count { it.tileType == PIN && it.isAka } shouldBe 1
 
         logger.info("Wall with red dora Pins and Mans: {}", wall.tileWall)

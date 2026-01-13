@@ -1,6 +1,9 @@
 package xyz.uthofficial.arnyan.env.match
 
+import xyz.uthofficial.arnyan.env.error.ArnyanError
 import xyz.uthofficial.arnyan.env.player.Player
+import xyz.uthofficial.arnyan.env.result.Result
+import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
 import xyz.uthofficial.arnyan.env.tile.TileWall
 import xyz.uthofficial.arnyan.env.wind.TableTopology
@@ -10,11 +13,11 @@ class Match(private val ruleSet: RuleSet) {
     lateinit var wall: TileWall
     lateinit var topology: TableTopology
 
-    fun initialise(players: List<Player>) {
-        wall = ruleSet.wallGenerationRule.build().getOrThrow()
-        wall deal 13 randomlyTo players
+    fun initialise(players: List<Player>): Result<Unit, ArnyanError> = binding {
+        wall = ruleSet.wallGenerationRule.build().bind()
+        (wall deal 13 randomlyTo players).bind()
 
-        topology = ruleSet.playerWindRotationOrderRule.build().getOrThrow()
+        topology = ruleSet.playerWindRotationOrderRule.build().bind()
         players.assignSeatRandomly()
     }
 

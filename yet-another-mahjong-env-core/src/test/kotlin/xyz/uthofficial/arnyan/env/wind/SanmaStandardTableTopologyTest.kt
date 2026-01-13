@@ -3,6 +3,9 @@ package xyz.uthofficial.arnyan.env.wind
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import xyz.uthofficial.arnyan.env.error.ConfigurationError
+import xyz.uthofficial.arnyan.env.error.TopologyError
+import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.wind.StandardWind.*
 
 class SanmaStandardTableTopologyTest : FunSpec({
@@ -23,27 +26,27 @@ class SanmaStandardTableTopologyTest : FunSpec({
 
     test("getToimen should always return failure in Sanma") {
         val result = topology.getToimen(EAST)
-        result.isFailure shouldBe true
-        result.exceptionOrNull().shouldBeInstanceOf<UnsupportedOperationException>()
+        result.shouldBeInstanceOf<Result.Failure<TopologyError>>()
+        result.error.shouldBeInstanceOf<TopologyError.NoToimenAvailable>()
     }
 
     test("should return failure when wind is not in seat order") {
         val result = topology.getShimocha(NORTH)
-        result.isFailure shouldBe true
-        result.exceptionOrNull().shouldBeInstanceOf<IllegalArgumentException>()
+        result.shouldBeInstanceOf<Result.Failure<TopologyError>>()
+        result.error.shouldBeInstanceOf<TopologyError.WindNotInCycle>()
     }
 
     test("should validate seat order in configuration builder") {
         val emptyConfig = PlayerSeatWindRotationConfiguration()
         val emptyResult = emptyConfig.build()
-        emptyResult.isFailure shouldBe true
-        emptyResult.exceptionOrNull().shouldBeInstanceOf<IllegalArgumentException>()
+        emptyResult.shouldBeInstanceOf<Result.Failure<ConfigurationError>>()
+        emptyResult.error.shouldBeInstanceOf<ConfigurationError.InvalidConfiguration>()
 
         val duplicateConfig = PlayerSeatWindRotationConfiguration().apply {
             EAST - EAST
         }
         val duplicateResult = duplicateConfig.build()
-        duplicateResult.isFailure shouldBe true
-        duplicateResult.exceptionOrNull().shouldBeInstanceOf<IllegalArgumentException>()
+        duplicateResult.shouldBeInstanceOf<Result.Failure<ConfigurationError>>()
+        duplicateResult.error.shouldBeInstanceOf<ConfigurationError.InvalidConfiguration>()
     }
 })

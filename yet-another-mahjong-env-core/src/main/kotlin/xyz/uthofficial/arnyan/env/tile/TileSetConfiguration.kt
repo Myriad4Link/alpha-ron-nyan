@@ -1,5 +1,9 @@
 package xyz.uthofficial.arnyan.env.tile
 
+import xyz.uthofficial.arnyan.env.error.ConfigurationError
+import xyz.uthofficial.arnyan.env.result.Result
+import xyz.uthofficial.arnyan.env.result.binding
+
 class TileSetConfiguration {
     private val buildBlocks: MutableList<TileSetConfiguration.() -> Unit> = mutableListOf()
     val composition: MutableMap<TileType, MutableList<Int>> = mutableMapOf()
@@ -21,9 +25,9 @@ class TileSetConfiguration {
         return this
     }
 
-    fun build(): Result<TileWall> {
-        return runCatching {
-            buildBlocks.forEach { this.it() }
+    fun build(): Result<TileWall, ConfigurationError> = binding {
+        binding({ ConfigurationError.InvalidConfiguration("Failed to build TileSet", it) }) {
+            buildBlocks.forEach { this@TileSetConfiguration.it() }
 
             val tileWall = TileWall()
             // What `composition` looks like:

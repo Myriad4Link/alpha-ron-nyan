@@ -1,4 +1,4 @@
-package xyz.uthofficial.arnyan.env.base
+package xyz.uthofficial.arnyan.env.ruleset.base
 
 import xyz.uthofficial.arnyan.env.error.ConfigurationError
 import xyz.uthofficial.arnyan.env.result.Result

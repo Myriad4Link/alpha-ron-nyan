@@ -11,12 +11,14 @@ import xyz.uthofficial.arnyan.env.error.WallError
 import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.tile.StandardTileType.*
+import xyz.uthofficial.arnyan.env.tile.dsl.and
+import xyz.uthofficial.arnyan.env.tile.dsl.of
 
 class TileSetConfigurationIntegrationTest : FunSpec({
     fun buildNormalTileWall(): TileWall = (TileSetConfiguration().setGroup {
-        1..9 of (SOU and MAN and PIN)
-        1..4 of WIND
-        1..3 of DRAGON
+        (1..9 of (SOU and MAN and PIN)) +
+                (1..4 of WIND) +
+                (1..3 of DRAGON)
     } repeatFor 4).build().getOrThrow()
 
     val logger = LoggerFactory.getLogger(this::class.java)
@@ -36,10 +38,10 @@ class TileSetConfigurationIntegrationTest : FunSpec({
 
         val beforeDraw = tileWall.tileWall.toMutableList()
         val result = tileWall.draw(13)
-        
+
         result.shouldBeInstanceOf<Result.Success<List<Tile>>>()
         val value = result.value
-        
+
         value.size shouldBe 13
         value shouldBeEqual List(13) { beforeDraw.removeLast() }
         logger.info("Chosen: {}", value)
@@ -105,10 +107,10 @@ class TileSetConfigurationIntegrationTest : FunSpec({
     }
 
     test("should correctly configure red doras for single type") {
-        val wall = ( (TileSetConfiguration().setGroup {
+        val wall = ((TileSetConfiguration().setGroup {
             1..9 of MAN
         } repeatFor 4)
-            .whereEvery { listOf(MAN) } has 1 redDoraOn 5 )
+            .whereEvery { MAN and SOU } has 1 redDoraOn 5)
             .build()
             .getOrThrow()
 
@@ -120,10 +122,10 @@ class TileSetConfigurationIntegrationTest : FunSpec({
     }
 
     test("should correctly configure red doras for multiple types") {
-        val wall = ( (TileSetConfiguration().setGroup {
+        val wall = ((TileSetConfiguration().setGroup {
             1..9 of (MAN and PIN)
         } repeatFor 4)
-            .whereEvery { MAN and PIN } has 1 redDoraOn 5 )
+            .whereEvery { MAN and PIN } has 1 redDoraOn 5)
             .build()
             .getOrThrow()
 

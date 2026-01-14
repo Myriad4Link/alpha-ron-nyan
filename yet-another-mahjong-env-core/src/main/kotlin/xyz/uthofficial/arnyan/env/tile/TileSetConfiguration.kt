@@ -5,13 +5,12 @@ import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 
 class TileSetConfiguration {
-    private val buildBlocks: MutableList<TileSetConfiguration.() -> Unit> = mutableListOf()
-    val composition: MutableMap<TileType, MutableList<Int>> = mutableMapOf()
+    private var composition: TileComposition = TileComposition()
     var akaDoraConfigurationBuilder: AkaDoraConfigurationBuilder? = null
     var dealAmount = 13
 
-    fun setGroup(block: TileSetConfiguration.() -> Unit): TileSetConfiguration {
-        buildBlocks.add(block)
+    fun setGroup(block: () -> TileComposition): TileSetConfiguration {
+        composition += block()
         return this
     }
 
@@ -21,28 +20,19 @@ class TileSetConfiguration {
     }
 
     infix fun repeatFor(amount: Int): TileSetConfiguration {
-        buildBlocks.add {
-            composition.forEach { (_, ints) ->
-                val originTiles = ints.toList()
-                repeat(amount - 1) { ints.addAll(originTiles) }
-            }
-        }
-
+        composition = TileComposition(composition.composition.mapValues { (_, ints) ->
+            val originTiles = ints.toList()
+            val newInts = ints.toMutableList()
+            repeat(amount - 1) { newInts.addAll(originTiles) }
+            newInts
+        })
         return this
     }
 
     fun build(): Result<TileWall, ConfigurationError> = binding {
         binding({ ConfigurationError.InvalidConfiguration("Failed to build TileSet", it) }) {
-            buildBlocks.forEach { this@TileSetConfiguration.it() }
-
             val tileWall = TileWall(standardDealAmount = dealAmount)
-            // What `composition` looks like:
-            // {
-            //    "WAN": [1, 1, 1, 1, 9, 9, 9, 9],
-            //    "SOU": [1, 2, 3, ..., 9, 1, 2, 3, ..., 9, ..., 9],
-            //    ...
-            // }
-            composition.forEach { (type, values) ->
+            composition.composition.forEach { (type, values) ->
                 val akaConfig = akaDoraConfigurationBuilder?.akaDoraConfiguration?.get(type)
                 var akaQuota = akaConfig?.first ?: 0
                 val akaValueTarget = akaConfig?.second ?: -1
@@ -59,19 +49,7 @@ class TileSetConfiguration {
         }
     }
 
-    infix fun Iterable<Int>.of(tileType: TileType) {
-        this of listOf(tileType)
-    }
-
-    infix fun Iterable<Int>.of(tileTypes: Iterable<TileType>) {
-        val numbers = this.toList()
-
-        tileTypes.forEach { type ->
-            composition.getOrPut(type) { mutableListOf() }.addAll(numbers)
-        }
-    }
-
-    infix fun whereEvery(tileTypesBlock: TileSetConfiguration.() -> Iterable<TileType>): AkaDoraConfigurationBuilder =
+    infix fun whereEvery(tileTypesBlock: () -> Iterable<TileType>): AkaDoraConfigurationBuilder =
         AkaDoraConfigurationBuilder(tileTypesBlock(), this)
 
     class AkaDoraConfigurationBuilder(val tileTypes: Iterable<TileType>, val parent: TileSetConfiguration) {
@@ -91,13 +69,4 @@ class TileSetConfiguration {
             return parent
         }
     }
-
-    infix fun TileType.and(operand: TileType): MutableList<TileType> = mutableListOf(this, operand)
-    infix fun MutableList<TileType>.and(operand: TileType): MutableList<TileType> {
-        this.add(operand)
-        return this
-    }
-
-    fun allOf(tileType: TileType) = this.allOf(listOf(tileType))
-    fun allOf(tileTypes: Iterable<TileType>) = tileTypes.forEach { it.intRange of it }
 }

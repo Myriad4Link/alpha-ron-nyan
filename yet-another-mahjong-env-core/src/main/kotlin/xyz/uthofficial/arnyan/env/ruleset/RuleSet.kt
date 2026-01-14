@@ -1,11 +1,12 @@
 package xyz.uthofficial.arnyan.env.ruleset
 
-import xyz.uthofficial.arnyan.env.base.WallGenerationRule
-import xyz.uthofficial.arnyan.env.base.WindRotationRule
+import xyz.uthofficial.arnyan.env.ruleset.base.WallGenerationRule
+import xyz.uthofficial.arnyan.env.ruleset.base.WindRotationRule
 import xyz.uthofficial.arnyan.env.wind.StandardWind.*
 import xyz.uthofficial.arnyan.env.wind.PlayerSeatWindRotationConfiguration
 import xyz.uthofficial.arnyan.env.tile.TileSetConfiguration
 import xyz.uthofficial.arnyan.env.tile.StandardTileType.*
+import xyz.uthofficial.arnyan.env.tile.dsl.*
 
 data class RuleSet(
     val wallGenerationRule: WallGenerationRule,
@@ -16,8 +17,7 @@ data class RuleSet(
             wallGenerationRule = {
                 (TileSetConfiguration()
                     .setGroup {
-                        allOf(SOU and PIN and WIND and DRAGON)
-                        listOf(1, 9) of MAN
+                        allOf(SOU and PIN and WIND and DRAGON) + (listOf(1, 9) of MAN)
                     } repeatFor 4 whereEvery { SOU and PIN } has 1 redDoraOn 5)
                     .build()
             },

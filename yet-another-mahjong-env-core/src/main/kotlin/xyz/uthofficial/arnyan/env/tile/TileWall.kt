@@ -5,12 +5,12 @@ import xyz.uthofficial.arnyan.env.error.WallError
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 
-class TileWall {
+class TileWall(override val standardDealAmount: Int) : ReadOnlyTileWall {
     private val tiles = ArrayDeque<Tile>()
-    val tileWall: List<Tile>
+    override val tileWall: List<Tile>
         get() = tiles
 
-    val size
+    override val size
         get() = tiles.size
 
     fun add(tile: Tile) = tiles.add(tile)

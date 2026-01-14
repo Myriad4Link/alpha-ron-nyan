@@ -4,6 +4,8 @@ import xyz.uthofficial.arnyan.env.error.TopologyError
 import xyz.uthofficial.arnyan.env.result.Result
 
 class SanmaStandardTableTopology(override val seats: List<Wind>) : TableTopology {
+    override val firstSeatWind: Wind
+        get() = seats.first()
 
     override fun getShimocha(current: Wind): Result<Wind, TopologyError> {
         return when (val index = seats.indexOf(current)) {

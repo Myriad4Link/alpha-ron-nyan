@@ -8,9 +8,15 @@ class TileSetConfiguration {
     private val buildBlocks: MutableList<TileSetConfiguration.() -> Unit> = mutableListOf()
     val composition: MutableMap<TileType, MutableList<Int>> = mutableMapOf()
     var akaDoraConfigurationBuilder: AkaDoraConfigurationBuilder? = null
+    var dealAmount = 13
 
     fun setGroup(block: TileSetConfiguration.() -> Unit): TileSetConfiguration {
         buildBlocks.add(block)
+        return this
+    }
+
+    fun setStandardDealAmount(amount: Int): TileSetConfiguration {
+        this.dealAmount = amount
         return this
     }
 
@@ -29,7 +35,7 @@ class TileSetConfiguration {
         binding({ ConfigurationError.InvalidConfiguration("Failed to build TileSet", it) }) {
             buildBlocks.forEach { this@TileSetConfiguration.it() }
 
-            val tileWall = TileWall()
+            val tileWall = TileWall(standardDealAmount = dealAmount)
             // What `composition` looks like:
             // {
             //    "WAN": [1, 1, 1, 1, 9, 9, 9, 9],

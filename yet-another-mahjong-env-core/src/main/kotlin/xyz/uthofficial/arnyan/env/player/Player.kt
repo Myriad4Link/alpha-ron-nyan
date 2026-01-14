@@ -4,8 +4,8 @@ import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.Wind
 import java.util.UUID
 
-class Player {
-    val id: UUID = UUID.randomUUID()
-    val hand = mutableListOf<Tile>()
-    var seat: Wind? = null
+class Player(override val id: UUID = UUID.randomUUID()) : ReadOnlyPlayer {
+    override val hand = mutableListOf<Tile>()
+    override var seat: Wind? = null
+
 }

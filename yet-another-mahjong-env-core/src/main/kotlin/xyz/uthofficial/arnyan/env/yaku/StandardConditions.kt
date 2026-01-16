@@ -1,5 +1,9 @@
 package xyz.uthofficial.arnyan.env.yaku
 
-//val Tanyao = Condition.build {
-//    this have ( listOf(1, 9) of StandardTileType.SOU)
-//}
+import xyz.uthofficial.arnyan.env.tile.StandardTileType
+import xyz.uthofficial.arnyan.env.tile.dsl.of
+import xyz.uthofficial.arnyan.env.yaku.YakuCondition.Companion.haveNone
+
+val Tanyao = YakuCondition.build {
+    this haveNone (listOf(1, 9) of StandardTileType.SOU)
+}

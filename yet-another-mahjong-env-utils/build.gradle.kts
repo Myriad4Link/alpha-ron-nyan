@@ -1,16 +1,21 @@
 plugins {
-    kotlin("jvm")
     id("buildsrc.convention.kotlin-jvm")
-    alias(libs.plugins.ksp)
+    kotlin("jvm")
 }
 
 group = "xyz.uthofficial"
-version = "1.0-SNAPSHOT"
+version = "unspecified"
+
+repositories {
+    mavenCentral()
+}
 
 dependencies {
-    implementation(libs.dagger)
-    ksp(libs.daggerCompiler)
     api(libs.slf4jApi)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.logbackClassic)
+
+    implementation(libs.symbolProcessingApi)
+    implementation(libs.kotlinPoet)
+    implementation(libs.kotlinPoetKsp)
 }

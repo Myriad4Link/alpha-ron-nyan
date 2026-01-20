@@ -8,6 +8,7 @@ group = "xyz.uthofficial"
 version = "1.0-SNAPSHOT"
 
 dependencies {
+    api(project(":yet-another-mahjong-env-api"))
     implementation(libs.dagger)
     ksp(libs.daggerCompiler)
     api(libs.slf4jApi)

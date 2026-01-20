@@ -11,6 +11,8 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":yet-another-mahjong-env-api"))
+
     api(libs.slf4jApi)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.logbackClassic)

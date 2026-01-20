@@ -29,9 +29,9 @@ class TileSetConfiguration {
         return this
     }
 
-    fun build(): Result<TileWall, ConfigurationError> = binding {
+    fun build(): Result<StandardTileWall, ConfigurationError> = binding {
         binding({ ConfigurationError.InvalidConfiguration("Failed to build TileSet", it) }) {
-            val tileWall = TileWall(standardDealAmount = dealAmount)
+            val tileWall = StandardTileWall(standardDealAmount = dealAmount)
             composition.composition.forEach { (type, values) ->
                 val akaConfig = akaDoraConfigurationBuilder?.akaDoraConfiguration?.get(type)
                 var akaQuota = akaConfig?.first ?: 0

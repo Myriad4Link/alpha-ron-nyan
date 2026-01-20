@@ -15,7 +15,7 @@ import xyz.uthofficial.arnyan.env.tile.dsl.and
 import xyz.uthofficial.arnyan.env.tile.dsl.of
 
 class TileSetConfigurationIntegrationTest : FunSpec({
-    fun buildNormalTileWall(): TileWall = (TileSetConfiguration().setGroup {
+    fun buildNormalTileWall(): StandardTileWall = (TileSetConfiguration().setGroup {
         (1..9 of (SOU and MAN and PIN)) +
                 (1..4 of WIND) +
                 (1..3 of DRAGON)

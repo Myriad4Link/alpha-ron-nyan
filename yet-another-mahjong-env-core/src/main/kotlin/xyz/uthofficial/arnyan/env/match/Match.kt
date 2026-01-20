@@ -4,6 +4,7 @@ import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.player.getPlayerSitAt
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
+import xyz.uthofficial.arnyan.env.tile.StandardTileWall
 import xyz.uthofficial.arnyan.env.tile.TileWall
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind

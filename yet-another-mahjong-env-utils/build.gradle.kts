@@ -16,8 +16,11 @@ dependencies {
     api(libs.slf4jApi)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.logbackClassic)
+    testImplementation(libs.kotlinCompileTestingKsp)
+    testImplementation(libs.kotlinCompileTestingCore)
 
     implementation(libs.symbolProcessingApi)
     implementation(libs.kotlinPoet)
     implementation(libs.kotlinPoetKsp)
 }
+

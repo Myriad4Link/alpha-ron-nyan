@@ -1,4 +1,4 @@
-package xyz.uthofficial.arnyan.env.yaku.extractor
+package xyz.uthofficial.arnyan.env.yaku.resolver
 
 //enum class StandardMentsuType : MentsuType {
 //    SHUNTSU,

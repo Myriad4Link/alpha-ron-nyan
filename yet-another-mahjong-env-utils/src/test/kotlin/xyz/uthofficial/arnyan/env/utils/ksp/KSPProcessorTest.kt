@@ -318,7 +318,58 @@ class KSPProcessorTest : FunSpec({
         buffer[0] = 99 // Set dirty
 
         getHistogramMethod.invoke(instance, list, buffer)
-        
+
         buffer[0] shouldBe 1
+    }
+
+    test("should generate negative mask for continuous tile types") {
+        val source = SourceFile.kotlin(
+            "ContinuousTiles.kt",
+            """
+            package test.pkg
+
+            import xyz.uthofficial.arnyan.env.utils.annotations.RegisterTileType
+            import xyz.uthofficial.arnyan.env.tile.TileType
+
+            @RegisterTileType
+            object ContinuousType : TileType {
+                override val intRange: IntRange = 1..3
+                override val isContinuous: Boolean = true
+            }
+
+            @RegisterTileType
+            object NormalType : TileType {
+                override val intRange: IntRange = 1..2
+            }
+            """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf(TestProcessorProvider())
+            inheritClassPath = true
+            messageOutputStream = System.out
+        }
+
+        val result = compilation.compile()
+        result.exitCode shouldBe KotlinCompilation.ExitCode.OK
+
+        val registryClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.generated.TileTypeRegistry")
+        val instance = registryClass.kotlin.objectInstance!!
+
+        val connectivityMaskProp = registryClass.getDeclaredMethod("getConnectivityMask")
+        val connectivityMask = connectivityMaskProp.invoke(instance) as IntArray
+        
+        // Sorted by qualified name: 
+        // 1. test.pkg.ContinuousType (size 3) -> maskId = -(0+1) = -1
+        // 2. test.pkg.NormalType (size 2) -> maskId = (1+1) = 2
+        
+        connectivityMask.size shouldBe 5
+        connectivityMask[0] shouldBe -1
+        connectivityMask[1] shouldBe -1
+        connectivityMask[2] shouldBe -1
+        connectivityMask[3] shouldBe 2
+        connectivityMask[4] shouldBe 2
     }
 })

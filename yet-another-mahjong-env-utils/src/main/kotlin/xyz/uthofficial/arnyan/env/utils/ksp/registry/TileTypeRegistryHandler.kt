@@ -27,6 +27,9 @@ class TileTypeRegistryHandler(
             currentOffset += (range.last - range.first + 1)
         }
         val totalSize = currentOffset
+        val size = PropertySpec.builder(
+            "size", Int::class.asClassName()
+        ).initializer("%L", totalSize).build()
                 val tileTypes = PropertySpec.builder(
                     "tileTypes", List::class.asClassName().parameterizedBy(
                         TileType::class.asClassName()
@@ -45,7 +48,8 @@ class TileTypeRegistryHandler(
             symbol ->
             val range = ranges[symbol]!!
             val count = range.last - range.first + 1
-            val maskId = index + 1
+            val isCont = isContinuous(symbol)
+            val maskId = if (isCont) -(index + 1) else (index + 1)
             repeat(count) { maskBlock.add("%L, ", maskId) }
         }
         maskBlock.add(")")
@@ -136,6 +140,7 @@ class TileTypeRegistryHandler(
             .addType(
                 TypeSpec.objectBuilder(fileName)
                     .addProperty(tileTypes)
+                    .addProperty(size)
                     .addProperty(connectivityMask)
                     .addProperties(segmentProperties)
                     .addProperty(segmentNone)
@@ -157,5 +162,17 @@ class TileTypeRegistryHandler(
             ?: throw IllegalStateException("Could not parse intRange for $name in ${file.path}")
         val (start, end) = match.destructured
         return start.toInt()..end.toInt()
+    }
+
+    private fun isContinuous(symbol: KSClassDeclaration): Boolean {
+        val file = symbol.containingFile?.let { File(it.filePath) }
+            ?: return false
+        val text = file.readText()
+        val name = symbol.simpleName.asString()
+        // Extract the block for this object
+        val objectBlockRegex = Regex("""object\s+$name[\s\S]*?\{([\s\S]*?)\n\s*\}""")
+        val match = objectBlockRegex.find(text) ?: return false
+        val body = match.groupValues[1]
+        return body.contains(Regex("""isContinuous[\s\S]*?=\s*true"""))
     }
 }

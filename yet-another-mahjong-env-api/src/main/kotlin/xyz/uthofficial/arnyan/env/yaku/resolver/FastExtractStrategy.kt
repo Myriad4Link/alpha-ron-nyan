@@ -1,4 +1,4 @@
-package xyz.uthofficial.arnyan.env.yaku.extractor
+package xyz.uthofficial.arnyan.env.yaku.resolver
 
 interface FastExtractStrategy {
     fun tryRemove(histogram: IntArray, index: Int): Boolean

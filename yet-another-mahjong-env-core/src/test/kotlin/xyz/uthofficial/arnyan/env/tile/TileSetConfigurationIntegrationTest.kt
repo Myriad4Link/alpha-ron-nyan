@@ -16,9 +16,9 @@ import xyz.uthofficial.arnyan.env.tile.dsl.of
 
 class TileSetConfigurationIntegrationTest : FunSpec({
     fun buildNormalTileWall(): StandardTileWall = (TileSetConfiguration().setGroup {
-        (1..9 of (SOU and MAN and PIN)) +
-                (1..4 of WIND) +
-                (1..3 of DRAGON)
+        (1..9 of (Sou and Man and Pin)) +
+                (1..4 of Wind) +
+                (1..3 of Dragon)
     } repeatFor 4).build().getOrThrow()
 
     val logger = LoggerFactory.getLogger(this::class.java)
@@ -27,7 +27,7 @@ class TileSetConfigurationIntegrationTest : FunSpec({
         val tileWall = buildNormalTileWall()
 
         tileWall.tileWall.take(3) shouldContainInOrder listOf(
-            Tile(SOU, 1), Tile(SOU, 2), Tile(SOU, 3)
+            Tile(Sou, 1), Tile(Sou, 2), Tile(Sou, 3)
         )
 
         tileWall.size shouldBe 136
@@ -58,36 +58,36 @@ class TileSetConfigurationIntegrationTest : FunSpec({
 
     test("should support combinator logic for tile types") {
         val wall = TileSetConfiguration().setGroup {
-            1..2 of (MAN and PIN)
+            1..2 of (Man and Pin)
         }.build().getOrThrow()
 
         wall.size shouldBe 4
-        wall.tileWall.count { it.tileType == MAN } shouldBe 2
-        wall.tileWall.count { it.tileType == PIN } shouldBe 2
+        wall.tileWall.count { it.tileType == Man } shouldBe 2
+        wall.tileWall.count { it.tileType == Pin } shouldBe 2
     }
 
     test("repeatFor should respect order of operations") {
         val wall = TileSetConfiguration()
-            .setGroup { 1..1 of MAN }
+            .setGroup { 1..1 of Man }
             .repeatFor(2)
-            .setGroup { 1..1 of PIN }
+            .setGroup { 1..1 of Pin }
             .build()
             .getOrThrow()
 
         wall.size shouldBe 3
-        wall.tileWall.count { it.tileType == MAN } shouldBe 2
-        wall.tileWall.count { it.tileType == PIN } shouldBe 1
+        wall.tileWall.count { it.tileType == Man } shouldBe 2
+        wall.tileWall.count { it.tileType == Pin } shouldBe 1
     }
 
     test("draw should return failure if not enough tiles") {
-        val result = TileSetConfiguration().setGroup { 1..1 of MAN }.build().getOrThrow().draw(2)
+        val result = TileSetConfiguration().setGroup { 1..1 of Man }.build().getOrThrow().draw(2)
         result.shouldBeInstanceOf<Result.Failure<WallError>>()
         result.error.shouldBeInstanceOf<WallError.NotEnoughTiles>()
     }
 
     test("deal should distribute tiles to players correctly") {
         val wall = (TileSetConfiguration().setGroup {
-            1..9 of MAN
+            1..9 of Man
         } repeatFor 4).build().getOrThrow()
 
         val p1 = Player()
@@ -108,30 +108,30 @@ class TileSetConfigurationIntegrationTest : FunSpec({
 
     test("should correctly configure red doras for single type") {
         val wall = ((TileSetConfiguration().setGroup {
-            1..9 of MAN
+            1..9 of Man
         } repeatFor 4)
-            .whereEvery { MAN and SOU } has 1 redDoraOn 5)
+            .whereEvery { Man and Sou } has 1 redDoraOn 5)
             .build()
             .getOrThrow()
 
-        wall.tileWall.filter { it.tileType == MAN && it.value == 5 && it.isAka }.size shouldBe 1
+        wall.tileWall.filter { it.tileType == Man && it.value == 5 && it.isAka }.size shouldBe 1
 
-        wall.tileWall.filter { it.tileType == MAN && it.value == 5 && !it.isAka }.size shouldBe 3
+        wall.tileWall.filter { it.tileType == Man && it.value == 5 && !it.isAka }.size shouldBe 3
 
         logger.info("Wall with red dora Pins: {}", wall.tileWall)
     }
 
     test("should correctly configure red doras for multiple types") {
         val wall = ((TileSetConfiguration().setGroup {
-            1..9 of (MAN and PIN)
+            1..9 of (Man and Pin)
         } repeatFor 4)
-            .whereEvery { MAN and PIN } has 1 redDoraOn 5)
+            .whereEvery { Man and Pin } has 1 redDoraOn 5)
             .build()
             .getOrThrow()
 
-        wall.tileWall.count { it.tileType == MAN && it.isAka } shouldBe 1
+        wall.tileWall.count { it.tileType == Man && it.isAka } shouldBe 1
 
-        wall.tileWall.count { it.tileType == PIN && it.isAka } shouldBe 1
+        wall.tileWall.count { it.tileType == Pin && it.isAka } shouldBe 1
 
         logger.info("Wall with red dora Pins and Mans: {}", wall.tileWall)
     }

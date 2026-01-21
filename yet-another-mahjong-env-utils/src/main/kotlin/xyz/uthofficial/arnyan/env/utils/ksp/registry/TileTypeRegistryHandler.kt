@@ -17,41 +17,30 @@ class TileTypeRegistryHandler(
     val fileName: String = "TileTypeRegistry"
 ) {
     fun generateRegistry(symbols: List<KSClassDeclaration>) {
-        val ranges = symbols.associateWith { getRange(it) }
+        val sortedSymbols = symbols.sortedBy { it.qualifiedName?.asString() ?: it.simpleName.asString() }
+        val ranges = sortedSymbols.associateWith { getRange(it) }
         val offsets = mutableMapOf<KSClassDeclaration, Int>()
         var currentOffset = 0
-        symbols.forEach {
+        sortedSymbols.forEach {
             offsets[it] = currentOffset
             val range = ranges[it]!!
             currentOffset += (range.last - range.first + 1)
         }
         val totalSize = currentOffset
-
                 val tileTypes = PropertySpec.builder(
-
                     "tileTypes", List::class.asClassName().parameterizedBy(
-
                         TileType::class.asClassName()
-
                     )
-
                 ).initializer(
-
                     CodeBlock.builder().apply {
-
                         add("listOf(\n")
-
-                        symbols.forEach { add("    %T,\n", it.toClassName()) }
-
+                        sortedSymbols.forEach { add("    %T,\n", it.toClassName()) }
                         add(")")
-
                     }.build()
-
                 ).build()
-
         val maskBlock = CodeBlock.builder()
         maskBlock.add("intArrayOf(")
-        symbols.forEachIndexed {
+        sortedSymbols.forEachIndexed {
             index,
             symbol ->
             val range = ranges[symbol]!!
@@ -67,25 +56,30 @@ class TileTypeRegistryHandler(
 
         val getHistogram = FunSpec.builder("getHistogram")
             .addParameter("hand", List::class.asClassName().parameterizedBy(Tile::class.asClassName()))
+            .addParameter(
+                ParameterSpec.builder("output", IntArray::class)
+                    .defaultValue("%T(%L)", IntArray::class, totalSize)
+                    .build()
+            )
             .returns(IntArray::class)
-            .addStatement("val histogram = IntArray(%L)", totalSize)
+            .addStatement("output.fill(0)")
             .beginControlFlow("for (tile in hand)")
-            .beginControlFlow("val index = when (tile.tileType)")
+            .addStatement("val index = when (tile.tileType) {")
             .apply {
-                symbols.forEach {
+                sortedSymbols.forEach {
                     symbol ->
                     val range = ranges[symbol]!!
                     val offset = offsets[symbol]!!
-                    val start = range.first
-                    val adjustment = offset - start
+                    val min = range.first
+                    val adjustment = offset - min
                     addStatement("%T -> tile.value + (%L)", symbol.toClassName(), adjustment)
                 }
             }
             .addStatement("else -> -1")
+            .addStatement("}")
+            .addStatement("if (index in 0 until %L) output[index]++", totalSize)
             .endControlFlow()
-            .addStatement("if (index in 0 until %L) histogram[index]++", totalSize)
-            .endControlFlow()
-            .addStatement("return histogram")
+            .addStatement("return output")
             .build()
 
         val getTileType = FunSpec.builder("getTileType")
@@ -93,7 +87,7 @@ class TileTypeRegistryHandler(
             .returns(TileType::class.asClassName())
             .beginControlFlow("return when")
             .apply {
-                symbols.forEach {
+                sortedSymbols.forEach {
                     symbol ->
                     val range = ranges[symbol]!!
                     val offset = offsets[symbol]!!
@@ -106,16 +100,51 @@ class TileTypeRegistryHandler(
             .endControlFlow()
             .build()
 
+        // Pre-allocate segment arrays
+        val segmentProperties = sortedSymbols.map { symbol ->
+            val range = ranges[symbol]!!
+            val offset = offsets[symbol]!!
+            val count = range.last - range.first + 1
+            PropertySpec.builder(
+                "SEGMENT_${symbol.simpleName.asString().uppercase()}",
+                IntArray::class
+            )
+                .addModifiers(KModifier.PRIVATE)
+                .initializer("intArrayOf(%L, %L)", offset, count)
+                .build()
+        }
+
+        val segmentNone = PropertySpec.builder("SEGMENT_NONE", IntArray::class)
+            .addModifiers(KModifier.PRIVATE)
+            .initializer("intArrayOf(-1, 0)")
+            .build()
+
+        val getSegment = FunSpec.builder("getSegment")
+            .addParameter("tileType", TileType::class.asClassName())
+            .returns(IntArray::class)
+            .beginControlFlow("return when(tileType)")
+            .apply {
+                sortedSymbols.forEach { symbol ->
+                    addStatement("%T -> SEGMENT_%L", symbol.toClassName(), symbol.simpleName.asString().uppercase())
+                }
+            }
+            .addStatement("else -> SEGMENT_NONE")
+            .endControlFlow()
+            .build()
+
         FileSpec.builder(packageName, fileName)
             .addType(
                 TypeSpec.objectBuilder(fileName)
                     .addProperty(tileTypes)
                     .addProperty(connectivityMask)
+                    .addProperties(segmentProperties)
+                    .addProperty(segmentNone)
                     .addFunction(getHistogram)
                     .addFunction(getTileType)
+                    .addFunction(getSegment)
                     .build()
             ).build()
-            .writeTo(codeGenerator, Dependencies(true, *symbols.mapNotNull { it.containingFile }.toTypedArray()))
+            .writeTo(codeGenerator, Dependencies(true, *sortedSymbols.mapNotNull { it.containingFile }.toTypedArray()))
     }
 
     private fun getRange(symbol: KSClassDeclaration): IntRange {

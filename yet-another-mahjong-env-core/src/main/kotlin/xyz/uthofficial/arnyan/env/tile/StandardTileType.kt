@@ -22,9 +22,13 @@ object Pin : StandardTileType {
 @RegisterTileType
 object Wind : StandardTileType {
     override val intRange: IntRange = 1..4
+    override val isContinuous: Boolean
+        get() = true
 }
 
 @RegisterTileType
 object Dragon : StandardTileType {
     override val intRange: IntRange = 1..3
+    override val isContinuous : Boolean
+        get() = true
 }

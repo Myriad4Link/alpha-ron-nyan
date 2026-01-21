@@ -66,8 +66,8 @@ class KSPProcessorTest : FunSpec({
         val tileConstructor = tileClass.constructors.first()
         val tileInstance = tileConstructor.newInstance(myTileInstance, 1, false)
 
-        val getHistogramMethod = registryClass.getMethod("getHistogram", List::class.java)
-        val histogram = getHistogramMethod.invoke(registryClass.kotlin.objectInstance, listOf(tileInstance)) as IntArray
+        val getHistogramMethod = registryClass.getMethod("getHistogram", List::class.java, IntArray::class.java)
+        val histogram = getHistogramMethod.invoke(registryClass.kotlin.objectInstance, listOf(tileInstance), IntArray(1)) as IntArray
         
         histogram.size shouldBe 1
         histogram[0] shouldBe 1
@@ -152,8 +152,8 @@ class KSPProcessorTest : FunSpec({
         val t2 = tileCtor.newInstance(typeB, 5, false)
         val list = listOf(t1, t2)
         
-        val getHistogramMethod = registryClass.getMethod("getHistogram", List::class.java)
-        val histogram = getHistogramMethod.invoke(instance, list) as IntArray
+        val getHistogramMethod = registryClass.getMethod("getHistogram", List::class.java, IntArray::class.java)
+        val histogram = getHistogramMethod.invoke(instance, list, IntArray(5)) as IntArray
         
         histogram.size shouldBe 5
         histogram[0] shouldBe 0
@@ -216,5 +216,109 @@ class KSPProcessorTest : FunSpec({
 
         result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
         result.messages shouldContain "must be implementing TileType"
+    }
+
+    test("should return correct segment for tile types") {
+        val source = SourceFile.kotlin(
+            "SegmentTestTiles.kt",
+            """
+            package test.pkg
+
+            import xyz.uthofficial.arnyan.env.utils.annotations.RegisterTileType
+            import xyz.uthofficial.arnyan.env.tile.TileType
+
+            @RegisterTileType
+            object SegmentTypeA : TileType {
+                override val intRange: IntRange = 1..5
+            }
+
+            @RegisterTileType
+            object SegmentTypeB : TileType {
+                override val intRange: IntRange = 1..10
+            }
+            """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf(TestProcessorProvider())
+            inheritClassPath = true
+            messageOutputStream = System.out
+        }
+
+        val result = compilation.compile()
+        result.exitCode shouldBe KotlinCompilation.ExitCode.OK
+
+        val registryClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.generated.TileTypeRegistry")
+        val instance = registryClass.kotlin.objectInstance!!
+        
+        val typeAClass = result.classLoader.loadClass("test.pkg.SegmentTypeA")
+        val typeBClass = result.classLoader.loadClass("test.pkg.SegmentTypeB")
+        val typeA = typeAClass.getField("INSTANCE").get(null)
+        val typeB = typeBClass.getField("INSTANCE").get(null)
+        val tileTypeClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.tile.TileType")
+
+        val getSegmentMethod = registryClass.getMethod("getSegment", tileTypeClass)
+        
+        // Sorted: SegmentTypeA (A comes before B in 'test.pkg.SegmentTypeA' vs 'test.pkg.SegmentTypeB')
+        // TypeA: size 5. Offset 0.
+        // TypeB: size 10. Offset 5.
+
+        val segmentA = getSegmentMethod.invoke(instance, typeA) as IntArray
+        segmentA[0] shouldBe 0
+        segmentA[1] shouldBe 5
+
+        val segmentB = getSegmentMethod.invoke(instance, typeB) as IntArray
+        segmentB[0] shouldBe 5
+        segmentB[1] shouldBe 10
+    }
+
+    test("should use provided buffer for histogram generation") {
+        val source = SourceFile.kotlin(
+            "BufferTestTiles.kt",
+            """
+            package test.pkg
+
+            import xyz.uthofficial.arnyan.env.utils.annotations.RegisterTileType
+            import xyz.uthofficial.arnyan.env.tile.TileType
+
+            @RegisterTileType
+            object BufferType : TileType {
+                override val intRange: IntRange = 1..1
+            }
+            """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf(TestProcessorProvider())
+            inheritClassPath = true
+            messageOutputStream = System.out
+        }
+
+        val result = compilation.compile()
+        result.exitCode shouldBe KotlinCompilation.ExitCode.OK
+
+        val registryClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.generated.TileTypeRegistry")
+        val instance = registryClass.kotlin.objectInstance!!
+        val tileClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.tile.Tile")
+        val bufferTypeClass = result.classLoader.loadClass("test.pkg.BufferType")
+        val bufferType = bufferTypeClass.getField("INSTANCE").get(null)
+        val tileCtor = tileClass.constructors.first()
+
+        val t1 = tileCtor.newInstance(bufferType, 1, false)
+        val list = listOf(t1)
+
+        val getHistogramMethod = registryClass.getMethod("getHistogram", List::class.java, IntArray::class.java)
+        
+        // Size 1.
+        val buffer = IntArray(1)
+        buffer[0] = 99 // Set dirty
+
+        getHistogramMethod.invoke(instance, list, buffer)
+        
+        buffer[0] shouldBe 1
     }
 })

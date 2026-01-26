@@ -1,3 +1,10 @@
 package xyz.uthofficial.arnyan.env.yaku.resolver
 
-data class Mentsu(val type: MentsuType, val isOpen: Boolean = false)
+import xyz.uthofficial.arnyan.env.tile.Tile
+
+interface Mentsu {
+    val mentsuType: MentsuType
+    val isOpen: Boolean
+    val tiles: List<Tile>
+    val akas: List<Tile>
+}

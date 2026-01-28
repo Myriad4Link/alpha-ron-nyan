@@ -18,9 +18,9 @@ class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
         originalHand: List<Tile>
     ) {
         var i = startIndex
-        while (i < TileTypeRegistry.size && histogram[i] == 0) i++
+        while (i < TileTypeRegistry.SIZE && histogram[i] == 0) i++
 
-        if (i >= TileTypeRegistry.size) {
+        if (i >= TileTypeRegistry.SIZE) {
             results.add(ArrayList(currentMentsu))
             return
         }
@@ -28,12 +28,12 @@ class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
         for (strategy in strategies) {
             if (strategy.tryRemove(histogram, i)) {
                 currentMentsu.add(strategy.type)
-                backtrack(i, histogram, currentMentsu, results)
+                backtrack(i, histogram, currentMentsu, results, originalHand)
                 currentMentsu.removeLast()
                 strategy.revert(histogram, i)
             }
         }
     }
 
-    private fun rehydrate(structure)
+//    private fun rehydrate(structure)
 }

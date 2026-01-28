@@ -12,7 +12,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import xyz.uthofficial.arnyan.env.tile.TileType
+import xyz.uthofficial.arnyan.env.yaku.resolver.MentsuType
 
 @OptIn(ExperimentalCompilerApi::class)
 class KSPProcessorTest : FunSpec({
@@ -371,5 +371,102 @@ class KSPProcessorTest : FunSpec({
         connectivityMask[2] shouldBe -1
         connectivityMask[3] shouldBe 2
         connectivityMask[4] shouldBe 2
+    }
+
+    test("should generate registry for valid annotated object implementing MentsuType") {
+        val source = SourceFile.kotlin(
+            "TestMentsu.kt",
+            """
+            package test.pkg
+
+            import xyz.uthofficial.arnyan.env.utils.annotations.RegisterMentsuType
+            import xyz.uthofficial.arnyan.env.yaku.resolver.MentsuType
+
+            @RegisterMentsuType
+            object MyMentsu : MentsuType
+            """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf(TestProcessorProvider())
+            inheritClassPath = true
+            messageOutputStream = System.out
+        }
+
+        val result = compilation.compile()
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.OK
+
+        val registryClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.generated.MentsuTypeRegistry")
+        val mentsuTypesProp = registryClass.getDeclaredMethod("getMentsuTypes")
+        val mentsuTypes = mentsuTypesProp.invoke(registryClass.kotlin.objectInstance) as List<*>
+
+        mentsuTypes.size shouldBe 1
+        mentsuTypes[0]!!.javaClass.name shouldBe "test.pkg.MyMentsu"
+
+        val getIndexMethod = registryClass.getMethod("getIndex", MentsuType::class.java)
+        val myMentsuClass = result.classLoader.loadClass("test.pkg.MyMentsu")
+        val myMentsuInstance = myMentsuClass.getField("INSTANCE").get(null)
+        val index = getIndexMethod.invoke(registryClass.kotlin.objectInstance, myMentsuInstance) as Int
+        index shouldBe 0
+
+        val getMentsuTypeMethod = registryClass.getMethod("getMentsuType", Int::class.javaPrimitiveType)
+        val retrieved = getMentsuTypeMethod.invoke(registryClass.kotlin.objectInstance, 0)
+        retrieved shouldBe myMentsuInstance
+    }
+
+    test("should fail when annotated element is not an object for MentsuType") {
+        val source = SourceFile.kotlin(
+            "InvalidMentsu.kt",
+            """
+            package test.pkg
+
+            import xyz.uthofficial.arnyan.env.utils.annotations.RegisterMentsuType
+            import xyz.uthofficial.arnyan.env.yaku.resolver.MentsuType
+
+            @RegisterMentsuType
+            class MyClassMentsu : MentsuType
+            """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf(TestProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        result.messages shouldContain "@RegisterMentsuType can only applied to objects"
+    }
+
+    test("should fail when annotated object does not implement MentsuType") {
+        val source = SourceFile.kotlin(
+            "InvalidObject.kt",
+            """
+            package test.pkg
+
+            import xyz.uthofficial.arnyan.env.utils.annotations.RegisterMentsuType
+
+            @RegisterMentsuType
+            object NotAMentsu
+            """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf(TestProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        result.messages shouldContain "must be implementing MentsuType"
     }
 })

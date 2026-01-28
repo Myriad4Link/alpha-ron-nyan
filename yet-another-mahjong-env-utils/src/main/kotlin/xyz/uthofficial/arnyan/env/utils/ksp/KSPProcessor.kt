@@ -11,10 +11,13 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import xyz.uthofficial.arnyan.env.tile.TileType
 import xyz.uthofficial.arnyan.env.utils.annotations.RegisterTileType
 import xyz.uthofficial.arnyan.env.utils.ksp.registry.TileTypeRegistryHandler
+import xyz.uthofficial.arnyan.env.yaku.resolver.MentsuType
+import xyz.uthofficial.arnyan.env.utils.annotations.RegisterMentsuType
+import xyz.uthofficial.arnyan.env.utils.ksp.registry.MentsuTypeRegistryHandler
 
 class KSPProcessor(private val codeGenerator: CodeGenerator, private val logger: KSPLogger) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val validatedSymbols = resolver.getSymbolsWithAnnotation(RegisterTileType::class.qualifiedName!!)
+        val tileSymbols = resolver.getSymbolsWithAnnotation(RegisterTileType::class.qualifiedName!!)
             .filterIsInstance<KSClassDeclaration>()
             .filter {
                 when {
@@ -35,9 +38,30 @@ class KSPProcessor(private val codeGenerator: CodeGenerator, private val logger:
             }
             .toList()
 
-        if (validatedSymbols.isEmpty()) return emptyList()
+        val mentsuSymbols = resolver.getSymbolsWithAnnotation(RegisterMentsuType::class.qualifiedName!!)
+            .filterIsInstance<KSClassDeclaration>()
+            .filter {
+                when {
+                    it.classKind != ClassKind.OBJECT -> {
+                        logger.error("@${RegisterMentsuType::class.simpleName!!} can only applied to objects.", it)
+                        false
+                    }
 
-        TileTypeRegistryHandler(codeGenerator).generateRegistry(validatedSymbols)
+                    it.getAllSuperTypes().none { superType ->
+                        superType.declaration.qualifiedName?.asString() == MentsuType::class.qualifiedName
+                    } -> {
+                        logger.error("Objects with @${RegisterMentsuType::class.simpleName!!} must be implementing ${MentsuType::class.simpleName}.")
+                        false
+                    }
+
+                    else -> true
+                }
+            }
+            .toList()
+
+        if (tileSymbols.isNotEmpty()) TileTypeRegistryHandler(codeGenerator).generateRegistry(tileSymbols)
+        if (mentsuSymbols.isNotEmpty()) MentsuTypeRegistryHandler(codeGenerator).generateRegistry(mentsuSymbols)
+
         return emptyList()
     }
 }

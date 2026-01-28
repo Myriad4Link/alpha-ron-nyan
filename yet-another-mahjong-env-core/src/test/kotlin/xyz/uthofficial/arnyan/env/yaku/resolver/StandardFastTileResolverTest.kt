@@ -16,17 +16,13 @@ class StandardFastTileResolverTest : FunSpec({
     fun handOf(vararg tiles: Tile): List<Tile> {
         return tiles.toList()
     }
-    
-    fun segmentStart(tileType: TileType): Int {
-        return registry.getSegment(tileType)[0]
-    }
-    
+
     test("empty hand returns list containing empty list") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val result = resolver.resolve(emptyList())
         
@@ -34,11 +30,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("single tile returns empty list") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(Tile(Man, 1))
         val result = resolver.resolve(hand)
@@ -47,11 +43,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("three identical man tiles resolves to Koutsu") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Man, 1),
@@ -64,11 +60,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("three consecutive man tiles resolves to Shuntsu") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Man, 1),
@@ -81,11 +77,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("four identical man tiles resolves to Kantsu") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Man, 1),
@@ -99,11 +95,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("mixed hand with multiple possible partitions returns all partitions") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1),
@@ -123,11 +119,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("hand with multiple tile types works correctly") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1),
@@ -139,11 +135,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("hand with wind tiles cannot form shuntsu") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Wind, 1),
@@ -156,11 +152,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("hand with insufficient tiles for any mentsu returns empty") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Man, 1),
@@ -172,11 +168,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("hand with dragon tiles works correctly") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Dragon, 1),
@@ -189,11 +185,11 @@ class StandardFastTileResolverTest : FunSpec({
     }
     
     test("complex hand with mixed patterns returns all valid partitions") {
-        val resolver = StandardFastTileResolver(listOf(
+        val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
             StandardKoutsuStrategy,
             StandardKantsuStrategy
-        ))
+        )
         
         val hand = handOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1),

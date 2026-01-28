@@ -27,9 +27,10 @@ class TileTypeRegistryHandler(
             currentOffset += (range.last - range.first + 1)
         }
         val totalSize = currentOffset
-        val size = PropertySpec.builder(
-            "size", Int::class.asClassName()
-        ).initializer("%L", totalSize).build()
+        val SIZE = PropertySpec.builder(
+            "SIZE", Int::class.asClassName()
+        ).addModifiers(KModifier.CONST)
+         .initializer("%L", totalSize).build()
                 val tileTypes = PropertySpec.builder(
                     "tileTypes", List::class.asClassName().parameterizedBy(
                         TileType::class.asClassName()
@@ -62,7 +63,7 @@ class TileTypeRegistryHandler(
             .addParameter("hand", List::class.asClassName().parameterizedBy(Tile::class.asClassName()))
             .addParameter(
                 ParameterSpec.builder("output", IntArray::class)
-                    .defaultValue("%T(%L)", IntArray::class, totalSize)
+                    .defaultValue("%T(%N)", IntArray::class.asClassName(), "SIZE")
                     .build()
             )
             .returns(IntArray::class)
@@ -81,7 +82,7 @@ class TileTypeRegistryHandler(
             }
             .addStatement("else -> -1")
             .addStatement("}")
-            .addStatement("if (index in 0 until %L) output[index]++", totalSize)
+            .addStatement("if (index in 0 until SIZE) output[index]++")
             .endControlFlow()
             .addStatement("return output")
             .build()
@@ -89,7 +90,7 @@ class TileTypeRegistryHandler(
         val getTileType = FunSpec.builder("getTileType")
             .addParameter("index", Int::class)
             .returns(TileType::class.asClassName())
-            .beginControlFlow("return when")
+            .beginControlFlow("return when(index)")
             .apply {
                 sortedSymbols.forEach {
                     symbol ->
@@ -97,7 +98,7 @@ class TileTypeRegistryHandler(
                     val offset = offsets[symbol]!!
                     val count = range.last - range.first + 1
                     val limit = offset + count
-                    addStatement("index < %L -> %T", limit, symbol.toClassName())
+                    addStatement("in %L until %L -> %T", offset, limit, symbol.toClassName())
                 }
             }
             .addStatement("else -> throw %T(%S)", IllegalArgumentException::class, "Index out of bounds")
@@ -138,9 +139,9 @@ class TileTypeRegistryHandler(
 
         FileSpec.builder(packageName, fileName)
             .addType(
-                TypeSpec.objectBuilder(fileName)
+                TypeSpec.objectBuilder(fileName).addModifiers(KModifier.FINAL)
                     .addProperty(tileTypes)
-                    .addProperty(size)
+                    .addProperty(SIZE)
                     .addProperty(connectivityMask)
                     .addProperties(segmentProperties)
                     .addProperty(segmentNone)
@@ -170,7 +171,7 @@ class TileTypeRegistryHandler(
         val text = file.readText()
         val name = symbol.simpleName.asString()
         // Extract the block for this object
-        val objectBlockRegex = Regex("""object\s+$name[\s\S]*?\{([\s\S]*?)\n\s*\}""")
+        val objectBlockRegex = Regex("""object\s+$name[\s\S]*?\{([\s\S]*?)\n\s*}""")
         val match = objectBlockRegex.find(text) ?: return false
         val body = match.groupValues[1]
         return body.contains(Regex("""isContinuous[\s\S]*?=\s*true"""))

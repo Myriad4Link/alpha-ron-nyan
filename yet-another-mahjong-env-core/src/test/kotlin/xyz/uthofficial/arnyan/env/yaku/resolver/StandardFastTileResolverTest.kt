@@ -17,6 +17,10 @@ class StandardFastTileResolverTest : FunSpec({
         return tiles.toList()
     }
 
+    fun unpackComposition(composition: LongArray): List<MentsuType> {
+        return composition.map { CompactMentsu(it).mentsuType }
+    }
+
     test("empty hand returns list containing empty list") {
         val resolver = StandardFastTileResolver(
             StandardShuntsuStrategy,
@@ -26,7 +30,8 @@ class StandardFastTileResolverTest : FunSpec({
         
         val result = resolver.resolve(emptyList())
         
-        result shouldBe listOf(emptyList())
+        result.size shouldBe 1
+        result[0].isEmpty() shouldBe true
     }
     
     test("single tile returns empty list") {
@@ -56,7 +61,8 @@ class StandardFastTileResolverTest : FunSpec({
         )
         val result = resolver.resolve(hand)
         
-        result shouldBe listOf(listOf(Koutsu))
+        result.size shouldBe 1
+        unpackComposition(result[0]) shouldBe listOf(Koutsu)
     }
     
     test("three consecutive man tiles resolves to Shuntsu") {
@@ -73,7 +79,8 @@ class StandardFastTileResolverTest : FunSpec({
         )
         val result = resolver.resolve(hand)
         
-        result shouldBe listOf(listOf(Shuntsu))
+        result.size shouldBe 1
+        unpackComposition(result[0]) shouldBe listOf(Shuntsu)
     }
     
     test("four identical man tiles resolves to Kantsu") {
@@ -91,7 +98,8 @@ class StandardFastTileResolverTest : FunSpec({
         )
         val result = resolver.resolve(hand)
         
-        result shouldBe listOf(listOf(Kantsu))
+        result.size shouldBe 1
+        unpackComposition(result[0]) shouldBe listOf(Kantsu)
     }
     
     test("mixed hand with multiple possible partitions returns all partitions") {
@@ -113,7 +121,7 @@ class StandardFastTileResolverTest : FunSpec({
             listOf(Koutsu, Koutsu, Koutsu)
         ).map { it.sortedBy { it::class.simpleName } }
         
-        val sortedResult = result.map { it.sortedBy { it::class.simpleName } }
+        val sortedResult = result.map { unpackComposition(it).sortedBy { it::class.simpleName } }
         
         sortedResult shouldContainAll expectedPartitions
     }
@@ -131,7 +139,8 @@ class StandardFastTileResolverTest : FunSpec({
         )
         val result = resolver.resolve(hand)
         
-        result shouldBe listOf(listOf(Koutsu, Koutsu))
+        result.size shouldBe 1
+        unpackComposition(result[0]) shouldBe listOf(Koutsu, Koutsu)
     }
     
     test("hand with wind tiles cannot form shuntsu") {
@@ -148,7 +157,8 @@ class StandardFastTileResolverTest : FunSpec({
         )
         val result = resolver.resolve(hand)
         
-        result shouldBe listOf(listOf(Koutsu))
+        result.size shouldBe 1
+        unpackComposition(result[0]) shouldBe listOf(Koutsu)
     }
     
     test("hand with insufficient tiles for any mentsu returns empty") {
@@ -181,7 +191,8 @@ class StandardFastTileResolverTest : FunSpec({
         )
         val result = resolver.resolve(hand)
         
-        result shouldBe listOf(listOf(Koutsu))
+        result.size shouldBe 1
+        unpackComposition(result[0]) shouldBe listOf(Koutsu)
     }
     
     test("complex hand with mixed patterns returns all valid partitions") {
@@ -198,6 +209,6 @@ class StandardFastTileResolverTest : FunSpec({
         )
         val result = resolver.resolve(hand)
         
-        result shouldContain listOf(Koutsu, Koutsu, Koutsu)
+        result.map { unpackComposition(it) } shouldContain listOf(Koutsu, Koutsu, Koutsu)
     }
 })

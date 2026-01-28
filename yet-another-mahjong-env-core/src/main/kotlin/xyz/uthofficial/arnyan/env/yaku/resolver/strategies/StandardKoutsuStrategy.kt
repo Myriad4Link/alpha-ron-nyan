@@ -6,6 +6,8 @@ import xyz.uthofficial.arnyan.env.yaku.resolver.MentsuType
 
 object StandardKoutsuStrategy : FastExtractStrategy {
     override val type: MentsuType = Koutsu
+    
+    override val tileOffsets: IntArray = intArrayOf(0, 0, 0)
 
     override fun tryRemove(histogram: IntArray, index: Int): Boolean {
         if (histogram[index] >= 3) {

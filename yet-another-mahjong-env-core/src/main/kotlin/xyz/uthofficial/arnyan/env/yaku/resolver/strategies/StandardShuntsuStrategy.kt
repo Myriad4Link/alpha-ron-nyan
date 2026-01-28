@@ -26,4 +26,6 @@ object StandardShuntsuStrategy : FastExtractStrategy {
     }
 
     override val type: MentsuType = Shuntsu
+    
+    override val tileOffsets: IntArray = intArrayOf(0, 1, 2)
 }

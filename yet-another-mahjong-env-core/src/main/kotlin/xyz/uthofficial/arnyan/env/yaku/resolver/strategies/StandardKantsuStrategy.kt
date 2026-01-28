@@ -19,5 +19,7 @@ object StandardKantsuStrategy : FastExtractStrategy {
 
     override val type: MentsuType
         get() = Kantsu
+    
+    override val tileOffsets: IntArray = intArrayOf(0, 0, 0, 0)
 
 }

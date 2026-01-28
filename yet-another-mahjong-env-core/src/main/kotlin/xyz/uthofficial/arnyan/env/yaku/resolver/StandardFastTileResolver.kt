@@ -40,7 +40,7 @@ class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
     }
 
      private fun packMentsu(strategy: FastExtractStrategy, baseIndex: Int): Long {
-         val mentsuTypeIndex = MentsuTypeRegistry.getIndex(strategy.type)
-          return CompactMentsu.pack(strategy.tileOffsets, baseIndex, mentsuTypeIndex, isOpen = false, akaPresence = 0)
+          val mentsuTypeIndex = MentsuTypeRegistry.getIndex(strategy.type)
+           return CompactMentsu.pack(strategy.tileOffsets, baseIndex, mentsuTypeIndex, isOpen = false)
      }
 }

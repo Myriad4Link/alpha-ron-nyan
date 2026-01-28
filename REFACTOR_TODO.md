@@ -13,20 +13,23 @@
 
 **Result**: Single pack method with offsets; documentation clearly states that callers are responsible for valid inputs and that runtime validation has been removed for performance.
 
- ### 2. Aka-Dora Rehydration Logic (IMPLEMENTED - 2026-01-28)
-**Status**: Implemented with commit [hash].
+ ### 2. Aka-Dora Rehydration Logic (REMOVED - 2026-01-29)
+ **Status**: Aka handling removed from mentsu representation; will be handled at yaku evaluation stage.
 
-**Changes Made**:
-- Modified `indexToTile()` to accept `isAka: Boolean` parameter (default false)
-- Updated `tiles` property to compute `isAka` flag for each tile based on `akaPresenceBits`
-- Updated `akas` property to filter `tiles` by `isAka` flag (ensuring tiles have correct flags)
-- Added comprehensive test coverage for aka flag rehydration
+ **Changes Made**:
+ - Removed `akaPresence` parameter from `CompactMentsu.pack()` method
+ - Removed `AKA_SHIFT` and `AKA_MASK` constants
+ - Removed `akaPresenceBits` property
+ - Updated `tiles` property to always set `isAka = false`
+ - Updated `akas` property to return `emptyList()`
+ - Updated `StandardFastTileResolver` to call `pack` without akaPresence
+ - Removed aka-related tests from `CompactMentsuTest`
 
-**Result**: 
-- `Tile` objects returned by `tiles` now have correct `isAka` flags
-- `akas` property returns tiles where `isAka = true`
-- Backward compatibility maintained with `Mentsu` interface
-- All tests pass (13/13)
+ **Result**: 
+ - CompactMentsu no longer stores aka information
+ - Aka-dora evaluation will be handled separately after yaku evaluation
+ - Reduced bit usage (bits 41-47 now reserved)
+ - All tests pass
 
 ---
 

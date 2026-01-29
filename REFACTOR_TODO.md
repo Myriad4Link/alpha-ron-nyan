@@ -65,4 +65,19 @@
 
 ---
 
+### 3. Pair (Toitsu) Support Added (2026-01-29)
+
+**Status**: Added pair mentsu type and strategy; updated minTileCount calculation.
+
+**Changes Made**:
+
+- Added `Toitsu` mentsu type in `StandardMentsuTypes.kt` with `@RegisterMentsuType`
+- Created `StandardToitsuStrategy` with `tileOffsets = [0, 0]`
+- Added `mentsuAmount` property to `FastExtractStrategy` interface (default: `tileOffsets.size`)
+- Updated `StandardFastTileResolver` to compute `minTileCount` using `mentsuAmount` (was hardcoded `/3`)
+- Added test for pair resolution
+
+**Result**: Supports 2‑tile mentsus (pairs) for hands like Chiitoitsu (seven pairs). Buffer sizing now adapts to
+smallest mentsu size among strategies.
+
 *Last Updated: 2026-01-29*

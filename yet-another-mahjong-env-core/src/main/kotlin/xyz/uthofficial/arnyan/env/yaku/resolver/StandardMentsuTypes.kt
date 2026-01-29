@@ -16,3 +16,6 @@ object Koutsu : MentsuType
 
 @RegisterMentsuType
 object Kantsu : MentsuType
+
+@RegisterMentsuType
+object Toitsu : MentsuType

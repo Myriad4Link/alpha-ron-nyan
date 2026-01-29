@@ -5,9 +5,11 @@ import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
 import xyz.uthofficial.arnyan.env.tile.Tile
 
 class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
+    private val minTileCount = strategies.minOf { it.mentsuAmount }
+    
     fun resolve(hand: List<Tile>): List<LongArray> {
         val histogram = TileTypeRegistry.getHistogram(hand)
-        val maxMentsu = hand.size / 3
+        val maxMentsu = hand.size / minTileCount
         val buffer = LongArray(maxMentsu)
         val results = mutableListOf<LongArray>()
         backtrack(0, histogram, buffer, 0, results)

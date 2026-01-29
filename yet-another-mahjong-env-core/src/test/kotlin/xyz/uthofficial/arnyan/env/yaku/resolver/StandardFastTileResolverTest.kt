@@ -9,9 +9,10 @@ import xyz.uthofficial.arnyan.env.tile.*
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKantsuStrategy
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKoutsuStrategy
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardShuntsuStrategy
+import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardToitsuStrategy
 
 class StandardFastTileResolverTest : FunSpec({
-    val registry = TileTypeRegistry
+    TileTypeRegistry
     
     fun handOf(vararg tiles: Tile): List<Tile> {
         return tiles.toList()
@@ -208,7 +209,22 @@ class StandardFastTileResolverTest : FunSpec({
             Tile(Man, 3), Tile(Man, 3), Tile(Man, 3)
         )
         val result = resolver.resolve(hand)
-        
+
         result.map { unpackComposition(it) } shouldContain listOf(Koutsu, Koutsu, Koutsu)
+    }
+
+    test("two identical man tiles resolves to Toitsu") {
+        val resolver = StandardFastTileResolver(
+            StandardToitsuStrategy
+        )
+
+        val hand = handOf(
+            Tile(Man, 1),
+            Tile(Man, 1)
+        )
+        val result = resolver.resolve(hand)
+
+        result.size shouldBe 1
+        unpackComposition(result[0]) shouldBe listOf(Toitsu)
     }
 })

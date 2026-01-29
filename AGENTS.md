@@ -135,9 +135,24 @@ The `CompactMentsu` value class stores a complete mentsu (tile group) in a singl
 **Important**: Runtime validation (`require` statements) has been removed for performance. Callers must ensure:
 - Tile indices fit within 8 bits (0‑255) – higher bits are masked
 - Mentsu type index fits within 8 bits (0‑255) – higher bits are masked
-- Maximum 4 tiles per mentsu (enforced by shift mapping; larger arrays cause `IllegalStateException`)
+- Maximum 4 tiles per mentsu, minimum 2 tiles per mentsu (enforced by shift mapping; larger arrays cause
+  `IllegalStateException`)
 
 Use `CompactMentsu.pack()` to create instances.
+
+#### Pair (Toitsu) Support
+
+The system now supports 2‑tile mentsus (pairs) for hands like **Chiitoitsu** (seven pairs).
+
+**Changes**:
+
+- Added `Toitsu` mentsu type (`@RegisterMentsuType`)
+- Added `StandardToitsuStrategy` with `tileOffsets = [0, 0]`
+- Added `mentsuAmount` property to `FastExtractStrategy` (default: `tileOffsets.size`)
+- `StandardFastTileResolver` now computes `minTileCount = strategies.minOf { it.mentsuAmount }` to correctly size the
+  buffer for variable‑size mentsus
+
+**Example**: A hand of two identical tiles resolves to a single `Toitsu` mentsu.
 
 ---
 

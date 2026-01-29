@@ -1,7 +1,7 @@
 plugins {
     id("buildsrc.convention.kotlin-jvm")
-    kotlin("jvm")
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kover)
 }
 
 group = "xyz.uthofficial"

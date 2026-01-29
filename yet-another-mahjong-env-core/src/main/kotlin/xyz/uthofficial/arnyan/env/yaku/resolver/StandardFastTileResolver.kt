@@ -6,13 +6,18 @@ import xyz.uthofficial.arnyan.env.tile.Tile
 
 class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
     private val minTileCount = strategies.minOf { it.mentsuAmount }
-    
+
+    private val histogramBuffer = IntArray(TileTypeRegistry.SIZE)
+    private var mentsuBuffer = LongArray(0)
+
     fun resolve(hand: List<Tile>): List<LongArray> {
-        val histogram = TileTypeRegistry.getHistogram(hand)
+        TileTypeRegistry.getHistogram(hand, histogramBuffer)
+
         val maxMentsu = hand.size / minTileCount
-        val buffer = LongArray(maxMentsu)
+        if (mentsuBuffer.size < maxMentsu) mentsuBuffer = LongArray(maxMentsu)
+
         val results = mutableListOf<LongArray>()
-        backtrack(0, histogram, buffer, 0, results)
+        backtrack(0, histogramBuffer, mentsuBuffer, 0, results)
         return results
     }
 
@@ -41,8 +46,8 @@ class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
         }
     }
 
-     private fun packMentsu(strategy: FastExtractStrategy, baseIndex: Int): Long {
-          val mentsuTypeIndex = MentsuTypeRegistry.getIndex(strategy.type)
-           return CompactMentsu.pack(strategy.tileOffsets, baseIndex, mentsuTypeIndex, isOpen = false)
-     }
+    private fun packMentsu(strategy: FastExtractStrategy, baseIndex: Int): Long {
+        val mentsuTypeIndex = MentsuTypeRegistry.getIndex(strategy.type)
+        return CompactMentsu.pack(strategy.tileOffsets, baseIndex, mentsuTypeIndex, isOpen = false)
+    }
 }

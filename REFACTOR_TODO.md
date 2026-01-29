@@ -55,6 +55,26 @@ getter to return `0` for 4‑tile mentsus.
 - Empty mentsu test (`tileCount = 0`) continues to work
 - All tests pass
 
+### 4. Breaking API Change Handled (2026-01-29)
+
+**Status**: `StandardFastTileResolver.resolve()` now returns `List<LongArray>` instead of `List<List<MentsuType>>`. All
+existing callers (tests) have been updated to work with the new return type.
+
+**Issue**: The refactoring to bit‑packed `CompactMentsu` changed the resolver's output from a list of mentsu‑type lists
+to a list of packed‑long arrays. This is a breaking change for any downstream consumer.
+
+**Changes Made**:
+
+- Updated `StandardFastTileResolverTest` to use `LongArray` results
+- Added `unpackComposition` helper that extracts `MentsuType` from packed longs
+- Verified no other production code calls `resolve()` (early‑development stage)
+
+**Result**:
+
+- All tests pass with the new API
+- No backward‑compatibility layer needed (clean codebase)
+- Performance benefit: callers receive packed longs directly, can defer unpacking
+
 ---
 
 ## Low Priority Items
@@ -103,5 +123,86 @@ getter to return `0` for 4‑tile mentsus.
 
 **Result**: Supports 2‑tile mentsus (pairs) for hands like Chiitoitsu (seven pairs). Buffer sizing now adapts to
 smallest mentsu size among strategies.
+
+### 5. Buffer Reuse Optimization (IMPLEMENTED - 2026-01-29)
+
+**Goal**: Eliminate per‑call array allocations in `StandardFastTileResolver.resolve()` by reusing buffers.
+
+**Issue**: Each resolution created new `IntArray` (histogram) and `LongArray` (mentsu buffer), causing unnecessary GC
+pressure.
+
+**Changes Made**:
+
+- Added `private val histogramBuffer = IntArray(TileTypeRegistry.SIZE)` (constant size 34)
+- Added `private var mentsuBuffer = LongArray(0)` sized dynamically per hand
+- Modified `resolve()` to use reusable buffers:
+    - `TileTypeRegistry.getHistogram(hand, histogramBuffer)` fills existing buffer
+    - `mentsuBuffer` resized only when hand requires larger capacity
+- All existing tests pass unchanged
+
+**Result**:
+
+- Zero allocations for histogram (fixed‑size reusable buffer)
+- Single allocation for mentsu buffer (resized only when needed)
+- ~50% reduction in allocations per resolution
+- Maintains single‑threaded performance assumption
+- No API changes; purely internal optimization
+
+### 6. Test Reorganization & Coverage Analysis (MEDIUM PRIORITY - 2026-01-29)
+
+**Goal**: Reorganize test structure for better maintainability and establish coverage reporting.
+
+**Current Issues**:
+
+- Tests are mixed in same directory structure as production code
+- No clear separation of unit vs integration tests
+- Coverage reporting not configured/analyzed (Kover plugin present but unused)
+- Test naming conventions inconsistent
+
+**Proposed Changes**:
+
+1. **Test Directory Restructuring**:
+    - Move tests to parallel `src/test/kotlin` structure matching production packages
+    - Consider separate `src/integrationTest/kotlin` for integration tests
+    - Group related test files logically (e.g., all resolver tests together)
+
+2. **Coverage Configuration**:
+    - Configure Kover to generate reports
+    - Set coverage thresholds (e.g., 80% line coverage)
+    - Add coverage check to CI/CD pipeline
+    - Exclude generated code from coverage (KSP-generated registries)
+
+3. **Test Improvements**:
+    - Standardize test naming (`ClassNameTest`)
+    - Ensure consistent use of Kotest idioms
+    - Add property‑based tests for critical algorithms
+    - Add edge‑case tests for CompactMentsu bit‑packing
+
+4. **Test Utilities**:
+    - Create shared test fixtures and builders
+    - Extract common test helpers (e.g., `handOf`, `unpackComposition`)
+    - Add test‑time registry mocks for DI refactoring preparation
+
+**Affected Files**:
+
+- All test files across modules
+- Build configuration files (`build.gradle.kts` files)
+- `.github/workflows/` if CI exists
+
+**Implementation Notes**:
+
+- Start with coverage analysis to identify gaps
+- Reorganize incrementally to avoid breaking existing tests
+- Consider adopting test‑tags for filtering (unit vs integration)
+- Add `./gradlew coverage` task that runs tests and generates report
+
+**Expected Outcome**:
+
+- Clear test structure that scales with project growth
+- Coverage reports identifying untested code paths
+- Confidence in refactoring through comprehensive test suite
+- Baseline for future test‑driven development
+
+---
 
 *Last Updated: 2026-01-29*

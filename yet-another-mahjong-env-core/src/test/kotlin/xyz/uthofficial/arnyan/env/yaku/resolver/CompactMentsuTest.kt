@@ -1,10 +1,9 @@
 package xyz.uthofficial.arnyan.env.yaku.resolver
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.assertions.throwables.shouldThrow
 import xyz.uthofficial.arnyan.env.generated.MentsuTypeRegistry
-import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
 import xyz.uthofficial.arnyan.env.tile.*
 
 class CompactMentsuTest : FunSpec({
@@ -50,6 +49,7 @@ class CompactMentsuTest : FunSpec({
         compact.tile2Index shouldBe tileIndex(Man, 1)
         compact.tile3Index shouldBe tileIndex(Man, 1)
         compact.tile4Index shouldBe tileIndex(Man, 1)
+        compact.tiles.size shouldBe 4
         compact.mentsuType shouldBe Kantsu
     }
 

@@ -11,6 +11,7 @@ kotest = ["kotestRunner", "kotestAssertions", "kotestProperties"]
 
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 [versions]
 
@@ -22,14 +23,16 @@ dagger = "2.59"
 slf4jApi = "2.0.17"
 ##    ⬆ = "2.1.0-alpha0"
 ##    ⬆ = "2.1.0-alpha1"
-logbackClassic = "1.5.24"
+logbackClassic = "1.5.26"
 kotest = "6.1.2"
 
-ksp = "2.3.4"
+ksp = "2.3.5"
 kotlinPoet = "2.2.0"
 autoService = "1.1.1"
 autoServiceKsp = "1.2.0"
 kotlinCompileTesting = "0.12.1"
+
+kover = "0.9.4"
 
 [libraries]
 

@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
-import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
 import xyz.uthofficial.arnyan.env.tile.*
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKantsuStrategy
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKoutsuStrategy
@@ -12,8 +11,6 @@ import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardShuntsuStrate
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardToitsuStrategy
 
 class StandardFastTileResolverTest : FunSpec({
-    TileTypeRegistry
-    
     fun handOf(vararg tiles: Tile): List<Tile> {
         return tiles.toList()
     }

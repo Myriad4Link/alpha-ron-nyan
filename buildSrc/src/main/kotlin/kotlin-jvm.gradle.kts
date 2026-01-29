@@ -14,8 +14,8 @@ kotlin {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-
 }
+
 tasks.test {
     useJUnitPlatform()
     jvmArgs("-XX:+EnableDynamicAgentLoading")

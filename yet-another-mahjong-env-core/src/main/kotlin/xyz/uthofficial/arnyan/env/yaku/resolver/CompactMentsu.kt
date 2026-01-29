@@ -3,7 +3,7 @@ package xyz.uthofficial.arnyan.env.yaku.resolver
 import xyz.uthofficial.arnyan.env.generated.MentsuTypeRegistry
 import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
 import xyz.uthofficial.arnyan.env.tile.Tile
-import xyz.uthofficial.arnyan.env.tile.TileType
+import xyz.uthofficial.arnyan.env.yaku.resolver.CompactMentsu.Companion.pack
 
 /**
  * Compact 64‑bit representation of a mentsu (tile group).
@@ -27,7 +27,7 @@ value class CompactMentsu(val raw: Long) : Mentsu {
         private const val TILE_MASK = 0xFFL
         private const val TYPE_MASK = 0xFFL
         private const val OPEN_MASK = 0x1L
-        private const val TILE_COUNT_MASK = 0x3L
+        private const val TILE_COUNT_MASK = 0x7L
         
 
          
@@ -42,7 +42,7 @@ value class CompactMentsu(val raw: Long) : Mentsu {
              * - Bits 32-39: Mentsu type index (0-255)
              * - Bit 40: Open flag (0=closed, 1=open)
              * - Bits 41-47: Reserved (unused)
-             * - Bits 48-49: Tile count (1-4)
+             * - Bits 48-50: Tile count (0-7)
              *
              * ### Restrictions (caller must ensure):
              * - `tileOffsets.size` ≤ 4 (extra indices cause IllegalStateException)

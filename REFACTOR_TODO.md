@@ -13,23 +13,47 @@
 
 **Result**: Single pack method with offsets; documentation clearly states that callers are responsible for valid inputs and that runtime validation has been removed for performance.
 
- ### 2. Aka-Dora Rehydration Logic (REMOVED - 2026-01-29)
- **Status**: Aka handling removed from mentsu representation; will be handled at yaku evaluation stage.
+### 2. Aka-Dora Rehydration Logic (REMOVED - 2026-01-29)
 
- **Changes Made**:
- - Removed `akaPresence` parameter from `CompactMentsu.pack()` method
- - Removed `AKA_SHIFT` and `AKA_MASK` constants
- - Removed `akaPresenceBits` property
- - Updated `tiles` property to always set `isAka = false`
- - Updated `akas` property to return `emptyList()`
- - Updated `StandardFastTileResolver` to call `pack` without akaPresence
- - Removed aka-related tests from `CompactMentsuTest`
+**Status**: Aka handling removed from mentsu representation; will be handled at yaku evaluation stage.
 
- **Result**: 
- - CompactMentsu no longer stores aka information
- - Aka-dora evaluation will be handled separately after yaku evaluation
- - Reduced bit usage (bits 41-47 now reserved)
- - All tests pass
+**Changes Made**:
+
+- Removed `akaPresence` parameter from `CompactMentsu.pack()` method
+- Removed `AKA_SHIFT` and `AKA_MASK` constants
+- Removed `akaPresenceBits` property
+- Updated `tiles` property to always set `isAka = false`
+- Updated `akas` property to return `emptyList()`
+- Updated `StandardFastTileResolver` to call `pack` without akaPresence
+- Removed aka-related tests from `CompactMentsuTest`
+
+**Result**:
+
+- CompactMentsu no longer stores aka information
+- Aka-dora evaluation will be handled separately after yaku evaluation
+- Reduced bit usage (bits 41-47 now reserved)
+- All tests pass
+
+### 3. Tile Count Mask Fix (IMPLEMENTED - 2026-01-29)
+
+**Status**: Fixed `TILE_COUNT_MASK` from `0x3L` (2 bits) to `0x7L` (3 bits) to correctly store tile count 4 (kantsu).
+
+**Issue**: Original mask `0x3L` (binary `011`) cannot store value `4` (binary `100`). `4 & 0x3 = 0`, causing `tileCount`
+getter to return `0` for 4‑tile mentsus.
+
+**Changes Made**:
+
+- Updated `TILE_COUNT_MASK = 0x7L` in `CompactMentsu.kt`
+- Updated KDoc comment: Bits 48‑50 (was 48‑49), tile count 0‑7 (was 1‑4)
+- Updated `AGENTS.md` bit layout documentation
+- Added assertion in 4‑tile test (`compact.tiles.size shouldBe 4`)
+
+**Result**:
+
+- 4‑tile mentsus (kantsu) now store and retrieve correct tile count
+- Supports tile counts 0‑7 (though only 0‑4 are used in practice)
+- Empty mentsu test (`tileCount = 0`) continues to work
+- All tests pass
 
 ---
 
@@ -65,7 +89,7 @@
 
 ---
 
-### 3. Pair (Toitsu) Support Added (2026-01-29)
+### 2. Pair (Toitsu) Support Added (2026-01-29)
 
 **Status**: Added pair mentsu type and strategy; updated minTileCount calculation.
 

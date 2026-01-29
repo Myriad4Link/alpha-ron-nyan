@@ -130,7 +130,7 @@ The `CompactMentsu` value class stores a complete mentsu (tile group) in a singl
 - Bits 32‑39: Mentsu type index (0‑255)
 - Bit 40: Open flag (0=closed, 1=open)
 - Bits 41‑47: Reserved (unused)
-- Bits 48‑49: Tile count (1‑4)
+- Bits 48‑50: Tile count (0‑7)
 
 **Important**: Runtime validation (`require` statements) has been removed for performance. Callers must ensure:
 - Tile indices fit within 8 bits (0‑255) – higher bits are masked

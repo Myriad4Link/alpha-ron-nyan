@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm")
     id("buildsrc.convention.kotlin-jvm")
+    alias(libs.plugins.kover)
 }
 
 group = "xyz.uthofficial"
@@ -10,5 +10,4 @@ dependencies {
     api(libs.slf4jApi)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.logbackClassic)
-
 }

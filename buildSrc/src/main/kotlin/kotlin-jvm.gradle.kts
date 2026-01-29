@@ -5,20 +5,22 @@ package buildsrc.convention
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    // Apply the Kotlin JVM plugin to add support for Kotlin in JVM projects.
     kotlin("jvm")
 }
 
 kotlin {
-    // Use a specific Java version to make it easier to work in different environments.
-    jvmToolchain(24)
+    jvmToolchain(25)
 }
 
 tasks.withType<Test>().configureEach {
-    // Configure all test Gradle tasks to use JUnitPlatform.
     useJUnitPlatform()
+}
 
-    // Log information about all test results, not only the failed ones.
+tasks.test {
+    useJUnitPlatform()
+    jvmArgs("-XX:+EnableDynamicAgentLoading")
+    jvmArgs("-Djdk.instrument.traceUsage=true")
+
     testLogging {
         events(
             TestLogEvent.FAILED,
@@ -26,4 +28,8 @@ tasks.withType<Test>().configureEach {
             TestLogEvent.SKIPPED
         )
     }
+
+    val tmpDir = layout.buildDirectory.dir("tmp")
+    systemProperty("java.io.tmpdir", tmpDir.map { it.asFile.absolutePath }.get())
+    doFirst { tmpDir.get().asFile.mkdirs() }
 }

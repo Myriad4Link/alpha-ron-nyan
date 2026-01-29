@@ -1,11 +1,34 @@
 package xyz.uthofficial.arnyan.env.tile
 
-enum class StandardTileType(override val intRange: IntRange = 1..9) : TileType {
-    MAN,
-    SOU,
-    PIN,
-    // 东 -> 南 -> 西 -> 北
-    WIND(1..4),
-    // 中 -> 发 -> 白
-    DRAGON(1..3)
+import xyz.uthofficial.arnyan.env.utils.annotations.RegisterTileType
+
+sealed interface StandardTileType : TileType
+
+@RegisterTileType
+object Man : StandardTileType {
+    override val intRange: IntRange = 1..9
+}
+
+@RegisterTileType
+object Sou : StandardTileType {
+    override val intRange: IntRange = 1..9
+}
+
+@RegisterTileType
+object Pin : StandardTileType {
+    override val intRange: IntRange = 1..9
+}
+
+@RegisterTileType
+object Wind : StandardTileType {
+    override val intRange: IntRange = 1..4
+    override val isContinuous: Boolean
+        get() = true
+}
+
+@RegisterTileType
+object Dragon : StandardTileType {
+    override val intRange: IntRange = 1..3
+    override val isContinuous : Boolean
+        get() = true
 }

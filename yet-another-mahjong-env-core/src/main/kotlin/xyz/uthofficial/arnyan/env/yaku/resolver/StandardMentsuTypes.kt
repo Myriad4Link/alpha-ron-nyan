@@ -13,3 +13,6 @@ object Kantsu : MentsuType
 
 @RegisterMentsuType
 object Toitsu : MentsuType
+
+@RegisterMentsuType
+object Kokushi : MentsuType

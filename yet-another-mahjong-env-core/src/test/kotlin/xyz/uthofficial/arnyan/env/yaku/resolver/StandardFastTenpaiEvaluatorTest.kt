@@ -28,11 +28,18 @@ class StandardFastTenpaiEvaluatorTest : FunSpec({
     }
 
     fun isTenpaiMentsus(mentsus: LongArray): Boolean {
+        val validMentsuTypes = setOf(Shuntsu, Koutsu, Kantsu)
         when (mentsus.size) {
-            1 -> return false
+            1 -> {
+                return CompactMentsu(mentsus[0]).mentsuType === Kokushi
+            }
             5 -> {
                 val toitsuCount = mentsus.count { CompactMentsu(it).mentsuType === Toitsu }
-                return toitsuCount == 1
+                if (toitsuCount != 1) return false
+                return mentsus.all { mentsu ->
+                    val type = CompactMentsu(mentsu).mentsuType
+                    type === Toitsu || type in validMentsuTypes
+                }
             }
 
             7 -> {

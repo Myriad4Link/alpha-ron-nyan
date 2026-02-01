@@ -4,6 +4,7 @@ import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
 
 class StandardFastTenpaiEvaluator(private val resolver: StandardFastTileResolver) {
 
+    private val validMentsuTypes = setOf(Shuntsu, Koutsu, Kantsu)
 
     fun evaluate(histogram: IntArray): Map<Int, List<LongArray>> {
         val results = mutableMapOf<Int, List<LongArray>>()
@@ -24,12 +25,18 @@ class StandardFastTenpaiEvaluator(private val resolver: StandardFastTileResolver
         return results
     }
 
-    private fun isTenpaiMentsus(mentsus: LongArray): Boolean {
+    internal fun isTenpaiMentsus(mentsus: LongArray): Boolean {
         when (mentsus.size) {
-            1 -> return false
+            1 -> {
+                return CompactMentsu(mentsus[0]).mentsuType === Kokushi
+            }
+
             5 -> {
-                val toitsuCount = mentsus.count { CompactMentsu(it).mentsuType === Toitsu }
-                return toitsuCount == 1
+                return mentsus.count { CompactMentsu(it).mentsuType === Toitsu } == 1 &&
+                        mentsus.all { mentsu ->
+                            val type = CompactMentsu(mentsu).mentsuType
+                            type === Toitsu || type in validMentsuTypes
+                        }
             }
 
             7 -> {

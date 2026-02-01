@@ -21,6 +21,18 @@ class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
         return results
     }
 
+    fun resolve(histogram: IntArray): List<LongArray> {
+        histogram.copyInto(histogramBuffer)
+
+        val totalTiles = histogram.sum()
+        val maxMentsu = totalTiles / minTileCount
+        if (mentsuBuffer.size < maxMentsu) mentsuBuffer = LongArray(maxMentsu)
+
+        val results = mutableListOf<LongArray>()
+        backtrack(0, histogramBuffer, mentsuBuffer, 0, results)
+        return results
+    }
+
     private fun backtrack(
         startIndex: Int,
         histogram: IntArray,

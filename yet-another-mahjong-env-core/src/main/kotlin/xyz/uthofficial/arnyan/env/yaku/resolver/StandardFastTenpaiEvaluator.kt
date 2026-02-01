@@ -25,19 +25,18 @@ class StandardFastTenpaiEvaluator(private val resolver: StandardFastTileResolver
         return results
     }
 
-    private fun isTenpaiMentsus(mentsus: LongArray): Boolean {
+    internal fun isTenpaiMentsus(mentsus: LongArray): Boolean {
         when (mentsus.size) {
             1 -> {
                 return CompactMentsu(mentsus[0]).mentsuType === Kokushi
             }
+
             5 -> {
-                val toitsuCount = mentsus.count { CompactMentsu(it).mentsuType === Toitsu }
-                if (toitsuCount != 1) return false
-                // remaining four must be Shuntsu, Koutsu, or Kantsu
-                return mentsus.all { mentsu ->
-                    val type = CompactMentsu(mentsu).mentsuType
-                    type === Toitsu || type in validMentsuTypes
-                }
+                return mentsus.count { CompactMentsu(it).mentsuType === Toitsu } == 1 &&
+                        mentsus.all { mentsu ->
+                            val type = CompactMentsu(mentsu).mentsuType
+                            type === Toitsu || type in validMentsuTypes
+                        }
             }
 
             7 -> {

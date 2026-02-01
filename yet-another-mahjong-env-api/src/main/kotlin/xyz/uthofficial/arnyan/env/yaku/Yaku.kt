@@ -1,5 +1,6 @@
 package xyz.uthofficial.arnyan.env.yaku
 
-interface Yaku {
-    val preconditions: List<() -> Boolean>
+interface Yaku<T> {
+    val name: String
+    fun judge(tiles: T): Boolean
 }

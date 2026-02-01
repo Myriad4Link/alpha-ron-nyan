@@ -49,17 +49,24 @@ class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
         }
 
         for (strategy in strategies) {
-            if (strategy.tryRemove(histogram, i)) {
-                val packed = packMentsu(strategy, i)
+            val removedIndices = strategy.tryRemove(histogram, i)
+            if (removedIndices != null) {
+                val packed = packMentsu(strategy, removedIndices)
                 buffer[depth] = packed
                 backtrack(i, histogram, buffer, depth + 1, results)
-                strategy.revert(histogram, i)
+                strategy.revert(histogram, removedIndices)
             }
         }
     }
 
-    private fun packMentsu(strategy: FastExtractStrategy, baseIndex: Int): Long {
+    private fun packMentsu(strategy: FastExtractStrategy, removedIndices: IntArray): Long {
         val mentsuTypeIndex = MentsuTypeRegistry.getIndex(strategy.type)
-        return CompactMentsu.pack(strategy.tileOffsets, baseIndex, mentsuTypeIndex, isOpen = false)
+        val containsYaochuhai = removedIndices.any { TileTypeRegistry.yaochuhaiIndices.contains(it) }
+        return CompactMentsu.pack(
+            removedIndices,
+            mentsuTypeIndex,
+            isOpen = false,
+            containsYaochuhai = containsYaochuhai
+        )
     }
 }

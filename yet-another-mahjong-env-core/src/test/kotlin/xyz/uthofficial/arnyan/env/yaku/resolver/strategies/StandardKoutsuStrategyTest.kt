@@ -2,6 +2,7 @@ package xyz.uthofficial.arnyan.env.yaku.resolver.strategies
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
 import xyz.uthofficial.arnyan.env.tile.Man
 import xyz.uthofficial.arnyan.env.tile.Sou
@@ -18,40 +19,40 @@ class StandardKoutsuStrategyTest : FunSpec({
     fun segmentStart(tileType: xyz.uthofficial.arnyan.env.tile.TileType): Int {
         return registry.getSegment(tileType)[0]
     }
-    
-    test("tryRemove should return true and decrement histogram for valid koutsu") {
+
+    test("tryRemove should return non-null and decrement histogram for valid koutsu") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
         
         val result = StandardKoutsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe true
+
+        result shouldNotBe null
         histogram[index] shouldBe 0
     }
-    
-    test("tryRemove should return false when insufficient tiles in histogram") {
+
+    test("tryRemove should return null when insufficient tiles in histogram") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
         
         val result = StandardKoutsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe false
+
+        result shouldBe null
         histogram[index] shouldBe 2
     }
-    
-    test("tryRemove should return true for koutsu with more than 3 copies") {
+
+    test("tryRemove should return non-null for koutsu with more than 3 copies") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
         
         val result = StandardKoutsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe true
+
+        result shouldNotBe null
         histogram[index] shouldBe 1
     }
     
@@ -63,8 +64,8 @@ class StandardKoutsuStrategyTest : FunSpec({
         val index = souStart + 4
         
         val result = StandardKoutsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe true
+
+        result shouldNotBe null
         histogram[index] shouldBe 0
     }
     
@@ -75,10 +76,10 @@ class StandardKoutsuStrategyTest : FunSpec({
         val index = segmentStart(Man) + 0
         
         val removed = StandardKoutsuStrategy.tryRemove(histogram, index)
-        removed shouldBe true
+        removed shouldNotBe null
         histogram[index] shouldBe 0
-        
-        StandardKoutsuStrategy.revert(histogram, index)
+
+        StandardKoutsuStrategy.revert(histogram, removed!!)
         
         histogram[index] shouldBe 3
     }
@@ -90,10 +91,10 @@ class StandardKoutsuStrategyTest : FunSpec({
         val index = segmentStart(Man) + 0
         
         val removed = StandardKoutsuStrategy.tryRemove(histogram, index)
-        removed shouldBe true
+        removed shouldNotBe null
         histogram[index] shouldBe 2
-        
-        StandardKoutsuStrategy.revert(histogram, index)
+
+        StandardKoutsuStrategy.revert(histogram, removed!!)
         
         histogram[index] shouldBe 5
     }

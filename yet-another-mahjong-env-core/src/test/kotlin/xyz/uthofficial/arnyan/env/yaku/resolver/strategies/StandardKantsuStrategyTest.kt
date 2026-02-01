@@ -2,6 +2,7 @@ package xyz.uthofficial.arnyan.env.yaku.resolver.strategies
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
 import xyz.uthofficial.arnyan.env.tile.*
 import xyz.uthofficial.arnyan.env.yaku.resolver.Kantsu
@@ -12,44 +13,44 @@ class StandardKantsuStrategyTest : FunSpec({
     fun histogramOf(vararg tiles: Tile): IntArray {
         return registry.getHistogram(tiles.toList())
     }
-    
-    fun segmentStart(tileType: xyz.uthofficial.arnyan.env.tile.TileType): Int {
+
+    fun segmentStart(tileType: TileType): Int {
         return registry.getSegment(tileType)[0]
     }
-    
-    test("tryRemove should return true and decrement histogram for valid kantsu") {
+
+    test("tryRemove should return non-null and decrement histogram for valid kantsu") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
         
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe true
+
+        result shouldNotBe null
         histogram[index] shouldBe 0
     }
-    
-    test("tryRemove should return false when insufficient tiles in histogram") {
+
+    test("tryRemove should return null when insufficient tiles in histogram") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
         
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe false
+
+        result shouldBe null
         histogram[index] shouldBe 3
     }
-    
-    test("tryRemove should return true for kantsu with more than 4 copies") {
+
+    test("tryRemove should return non-null for kantsu with more than 4 copies") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
         
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe true
+
+        result shouldNotBe null
         histogram[index] shouldBe 1
     }
     
@@ -61,8 +62,8 @@ class StandardKantsuStrategyTest : FunSpec({
         val index = souStart + 4
         
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe true
+
+        result shouldNotBe null
         histogram[index] shouldBe 0
     }
     
@@ -73,8 +74,8 @@ class StandardKantsuStrategyTest : FunSpec({
         val index = segmentStart(Dragon) + 0
         
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe true
+
+        result shouldNotBe null
         histogram[index] shouldBe 0
     }
     
@@ -85,8 +86,8 @@ class StandardKantsuStrategyTest : FunSpec({
         val index = segmentStart(Wind) + 0
         
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
-        
-        result shouldBe true
+
+        result shouldNotBe null
         histogram[index] shouldBe 0
     }
     
@@ -97,10 +98,10 @@ class StandardKantsuStrategyTest : FunSpec({
         val index = segmentStart(Man) + 0
         
         val removed = StandardKantsuStrategy.tryRemove(histogram, index)
-        removed shouldBe true
+        removed shouldNotBe null
         histogram[index] shouldBe 0
-        
-        StandardKantsuStrategy.revert(histogram, index)
+
+        StandardKantsuStrategy.revert(histogram, removed!!)
         
         histogram[index] shouldBe 4
     }
@@ -112,10 +113,10 @@ class StandardKantsuStrategyTest : FunSpec({
         val index = segmentStart(Man) + 0
         
         val removed = StandardKantsuStrategy.tryRemove(histogram, index)
-        removed shouldBe true
+        removed shouldNotBe null
         histogram[index] shouldBe 2
-        
-        StandardKantsuStrategy.revert(histogram, index)
+
+        StandardKantsuStrategy.revert(histogram, removed!!)
         
         histogram[index] shouldBe 6
     }

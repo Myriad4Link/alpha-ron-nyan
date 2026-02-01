@@ -27,7 +27,7 @@ class CompactMentsuTest : FunSpec({
     test("pack with 3 tiles works correctly") {
         val indices = tileIndices(Man to 1, Man to 2, Man to 3)
         val typeIndex = MentsuTypeRegistry.getIndex(Shuntsu)
-        val packed = CompactMentsu.pack(indices, 0, typeIndex)
+        val packed = CompactMentsu.pack(indices, typeIndex)
 
         val compact = CompactMentsu(packed)
         compact.tile1Index shouldBe tileIndex(Man, 1)
@@ -42,7 +42,7 @@ class CompactMentsuTest : FunSpec({
     test("pack with 4 tiles works correctly") {
         val indices = tileIndices(Man to 1, Man to 1, Man to 1, Man to 1)
         val typeIndex = MentsuTypeRegistry.getIndex(Kantsu)
-        val packed = CompactMentsu.pack(indices, 0, typeIndex)
+        val packed = CompactMentsu.pack(indices, typeIndex)
 
         val compact = CompactMentsu(packed)
         compact.tile1Index shouldBe tileIndex(Man, 1)
@@ -56,7 +56,7 @@ class CompactMentsuTest : FunSpec({
     test("pack with isOpen flag sets flag correctly") {
         val indices = tileIndices(Sou to 5, Sou to 5, Sou to 5)
         val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-        val packed = CompactMentsu.pack(indices, 0, typeIndex, isOpen = true)
+        val packed = CompactMentsu.pack(indices, typeIndex, isOpen = true)
 
         val compact = CompactMentsu(packed)
         compact.isOpen shouldBe true
@@ -67,7 +67,7 @@ class CompactMentsuTest : FunSpec({
      test("pack masks tile index to 8 bits") {
           val indices = intArrayOf(300)
           val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-          val packed = CompactMentsu.pack(indices, 0, typeIndex)
+         val packed = CompactMentsu.pack(indices, typeIndex)
          val compact = CompactMentsu(packed)
          compact.tile1Index shouldBe 44
      }
@@ -75,7 +75,7 @@ class CompactMentsuTest : FunSpec({
      test("pack masks mentsu type index to 8 bits") {
           val indices = tileIndices(Man to 1, Man to 1, Man to 1)
           val typeIndex = 300
-          val packed = CompactMentsu.pack(indices, 0, typeIndex)
+         val packed = CompactMentsu.pack(indices, typeIndex)
          val compact = CompactMentsu(packed)
          compact.tile1Index shouldBe tileIndex(Man, 1)
          compact.tile2Index shouldBe tileIndex(Man, 1)
@@ -87,7 +87,7 @@ class CompactMentsuTest : FunSpec({
      test("tiles property returns correct Tile objects") {
           val indices = tileIndices(Wind to 1, Wind to 1, Wind to 1)
           val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-          val packed = CompactMentsu.pack(indices, 0, typeIndex)
+         val packed = CompactMentsu.pack(indices, typeIndex)
  
          val compact = CompactMentsu(packed)
          val tiles = compact.tiles
@@ -101,7 +101,7 @@ class CompactMentsuTest : FunSpec({
     test("tiles filters out zero indices") {
         val indices = intArrayOf(tileIndex(Man, 1), tileIndex(Man, 2))
         val typeIndex = MentsuTypeRegistry.getIndex(Shuntsu)
-        val packed = CompactMentsu.pack(indices, 0, typeIndex)
+        val packed = CompactMentsu.pack(indices, typeIndex)
 
         val compact = CompactMentsu(packed)
         compact.tiles.size shouldBe 2
@@ -112,12 +112,12 @@ class CompactMentsuTest : FunSpec({
       test("pack with maximum tile indices works") {
            val indices = intArrayOf(33, 32, 31)
            val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-           val packed = CompactMentsu.pack(indices, 0, typeIndex, isOpen = true)
+          val packed = CompactMentsu.pack(indices, typeIndex, isOpen = true)
   
           val compact = CompactMentsu(packed)
-          compact.tile1Index shouldBe 33
+          compact.tile1Index shouldBe 31
           compact.tile2Index shouldBe 32
-          compact.tile3Index shouldBe 31
+          compact.tile3Index shouldBe 33
           compact.tile4Index shouldBe 0
           compact.isOpen shouldBe true
           compact.akas shouldBe emptyList()
@@ -128,14 +128,14 @@ class CompactMentsuTest : FunSpec({
           val indices = intArrayOf(1, 2, 3, 4, 5) // size 5
           val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
           shouldThrow<IllegalStateException> {
-              CompactMentsu.pack(indices, 0, typeIndex)
+              CompactMentsu.pack(indices, typeIndex)
          }
      }
 
     test("pack with empty tile indices works") {
         val indices = intArrayOf()
         val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-        val packed = CompactMentsu.pack(indices, 0, typeIndex)
+        val packed = CompactMentsu.pack(indices, typeIndex)
         val compact = CompactMentsu(packed)
         compact.tiles shouldBe emptyList()
         compact.tile1Index shouldBe 0
@@ -147,11 +147,34 @@ class CompactMentsuTest : FunSpec({
     test("value class equality works") {
         val indices = tileIndices(Dragon to 1, Dragon to 1, Dragon to 1)
         val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-        val packed = CompactMentsu.pack(indices, 0, typeIndex)
+        val packed = CompactMentsu.pack(indices, typeIndex)
         val compact1 = CompactMentsu(packed)
         val compact2 = CompactMentsu(packed)
 
         (compact1 == compact2) shouldBe true
         (compact1.hashCode() == compact2.hashCode()) shouldBe true
+    }
+
+    test("containsYaochuhai flag works correctly") {
+        // Yaochuhai tiles: Wind 1 (index 30), Man 1 (index 3)
+        // Non-yaochuhai: Man 2 (index 4)
+
+        // Test with yaochuhai tile (Wind 1)
+        val yaochuhaiIndices = tileIndices(Wind to 1, Wind to 1, Wind to 1)
+        val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
+        val packedWithYaochuhai = CompactMentsu.pack(yaochuhaiIndices, typeIndex, containsYaochuhai = true)
+        val compactWithYaochuhai = CompactMentsu(packedWithYaochuhai)
+        compactWithYaochuhai.containsYaochuhai shouldBe true
+
+        // Test without yaochuhai tile (Man 2)
+        val nonYaochuhaiIndices = tileIndices(Man to 2, Man to 2, Man to 2)
+        val packedWithoutYaochuhai = CompactMentsu.pack(nonYaochuhaiIndices, typeIndex, containsYaochuhai = false)
+        val compactWithoutYaochuhai = CompactMentsu(packedWithoutYaochuhai)
+        compactWithoutYaochuhai.containsYaochuhai shouldBe false
+
+        // Default parameter should be false
+        val packedDefault = CompactMentsu.pack(nonYaochuhaiIndices, typeIndex)
+        val compactDefault = CompactMentsu(packedDefault)
+        compactDefault.containsYaochuhai shouldBe false
     }
 })

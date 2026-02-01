@@ -22,17 +22,19 @@ value class CompactMentsu(val raw: Long) : Mentsu {
         private const val TILE4_SHIFT = 24
         private const val TYPE_SHIFT = 32
         private const val OPEN_SHIFT = 40
+        private const val YAOCHUHAI_SHIFT = 41
         private const val TILE_COUNT_SHIFT = 48
         
         private const val TILE_MASK = 0xFFL
         private const val TYPE_MASK = 0xFFL
         private const val OPEN_MASK = 0x1L
+        private const val YAOCHUHAI_MASK = 0x1L
         private const val TILE_COUNT_MASK = 0x7L
         
 
          
             /**
-             * Packs a mentsu defined by tile offsets from a base index.
+             * Packs a mentsu defined by tile indices.
              *
              * ### Bit Layout (LSB first):
              * - Bits 0-7: Tile 1 index (0-255)
@@ -41,30 +43,32 @@ value class CompactMentsu(val raw: Long) : Mentsu {
              * - Bits 24-31: Tile 4 index (0-255)
              * - Bits 32-39: Mentsu type index (0-255)
              * - Bit 40: Open flag (0=closed, 1=open)
-             * - Bits 41-47: Reserved (unused)
+             * - Bit 41: Yaochuhai flag (0=no yaochuhai, 1=contains yaochuhai tile)
+             * - Bits 42-47: Reserved (unused)
              * - Bits 48-50: Tile count (0-7)
              *
              * ### Restrictions (caller must ensure):
-             * - `tileOffsets.size` ≤ 4 (extra indices cause IllegalStateException)
-             * - Each tile index (`baseIndex + offset`) fits within 8 bits (0-255) – higher bits are masked
+             * - `tileIndices.size` ≤ 4 (extra indices cause IllegalStateException)
+             * - Each tile index fits within 8 bits (0-255) – higher bits are masked
              * - `mentsuTypeIndex` fits within 8 bits (0-255) – higher bits are masked
              *
-             * @param tileOffsets offsets from baseIndex (size 0-4)
-             * @param baseIndex starting tile index
+             * @param tileIndices absolute tile indices (size 0-4)
              * @param mentsuTypeIndex index of mentsu type in registry
              * @param isOpen whether the mentsu is open (called from discard)
+             * @param containsYaochuhai whether the mentsu contains any yaochuhai tile
              * @return packed 64-bit representation
              */
             fun pack(
-                tileOffsets: IntArray,
-                baseIndex: Int,
+                tileIndices: IntArray,
                 mentsuTypeIndex: Int,
-                isOpen: Boolean = false
+                isOpen: Boolean = false,
+                containsYaochuhai: Boolean = false
             ): Long {
-                val tileCount = tileOffsets.size
+                val sortedIndices = tileIndices.sorted()
+                val tileCount = sortedIndices.size
                 var result = 0L
-                for (i in tileOffsets.indices) {
-                    val tileIndex = baseIndex + tileOffsets[i]
+                for (i in sortedIndices.indices) {
+                    val tileIndex = sortedIndices[i]
                     val shift = when (i) {
                         0 -> TILE1_SHIFT
                         1 -> TILE2_SHIFT
@@ -76,6 +80,7 @@ value class CompactMentsu(val raw: Long) : Mentsu {
                 }
                 result = result or ((mentsuTypeIndex.toLong() and TYPE_MASK) shl TYPE_SHIFT)
                 result = result or ((if (isOpen) 1L else 0L) shl OPEN_SHIFT)
+                result = result or ((if (containsYaochuhai) 1L else 0L) shl YAOCHUHAI_SHIFT)
                 result = result or ((tileCount.toLong() and TILE_COUNT_MASK) shl TILE_COUNT_SHIFT)
                 return result
             }
@@ -96,6 +101,9 @@ value class CompactMentsu(val raw: Long) : Mentsu {
     
     override val isOpen: Boolean
         get() = ((raw shr OPEN_SHIFT) and OPEN_MASK) != 0L
+
+    val containsYaochuhai: Boolean
+        get() = ((raw shr YAOCHUHAI_SHIFT) and YAOCHUHAI_MASK) != 0L
     
      override val tiles: List<Tile>
          get() {

@@ -5,21 +5,19 @@ import xyz.uthofficial.arnyan.env.yaku.resolver.Kantsu
 import xyz.uthofficial.arnyan.env.yaku.resolver.MentsuType
 
 object StandardKantsuStrategy : FastExtractStrategy {
-    override fun tryRemove(histogram: IntArray, index: Int): Boolean {
+    override val type: MentsuType = Kantsu
+    override val mentsuAmount: Int = 4
+
+    override fun tryRemove(histogram: IntArray, index: Int): IntArray? {
         if (histogram[index] >= 4) {
             histogram[index] -= 4
-            return true
+            return intArrayOf(index, index, index, index)
         }
-        return false
+        return null
     }
 
-    override fun revert(histogram: IntArray, index: Int) {
-        histogram[index] += 4
+    override fun revert(histogram: IntArray, removedIndices: IntArray) {
+        histogram[removedIndices[0]] += 4
     }
-
-    override val type: MentsuType
-        get() = Kantsu
-    
-    override val tileOffsets: IntArray = intArrayOf(0, 0, 0, 0)
 
 }

@@ -3,6 +3,7 @@ package xyz.uthofficial.arnyan.env.yaku.resolver
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import xyz.uthofficial.arnyan.env.tile.*
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKantsuStrategy
@@ -17,6 +18,10 @@ class StandardFastTileResolverTest : FunSpec({
 
     fun unpackComposition(composition: LongArray): List<MentsuType> {
         return composition.map { CompactMentsu(it).mentsuType }
+    }
+
+    fun LongArray.hasYaochuhaiFlag(): Boolean {
+        return this.any { packed -> CompactMentsu(packed).containsYaochuhai }
     }
 
     test("empty hand returns list containing empty list") {
@@ -223,5 +228,69 @@ class StandardFastTileResolverTest : FunSpec({
 
         result.size shouldBe 1
         unpackComposition(result[0]) shouldBe listOf(Toitsu)
+    }
+
+    test("yaochuhai flag is true for Wind 1 triple") {
+        val resolver = StandardFastTileResolver(
+            StandardShuntsuStrategy,
+            StandardKoutsuStrategy,
+            StandardKantsuStrategy
+        )
+        val hand = handOf(
+            Tile(Wind, 1),
+            Tile(Wind, 1),
+            Tile(Wind, 1)
+        )
+        val result = resolver.resolve(hand)
+        result.size shouldBe 1
+        result[0].hasYaochuhaiFlag() shouldBe true
+    }
+
+    test("yaochuhai flag is false for Man 2 triple") {
+        val resolver = StandardFastTileResolver(
+            StandardShuntsuStrategy,
+            StandardKoutsuStrategy,
+            StandardKantsuStrategy
+        )
+        val hand = handOf(
+            Tile(Man, 2),
+            Tile(Man, 2),
+            Tile(Man, 2)
+        )
+        val result = resolver.resolve(hand)
+        result.size shouldBe 1
+        result[0].hasYaochuhaiFlag() shouldBe false
+    }
+
+    test("yaochuhai flag is true for terminal suit tile (Man 1)") {
+        val resolver = StandardFastTileResolver(
+            StandardShuntsuStrategy,
+            StandardKoutsuStrategy,
+            StandardKantsuStrategy
+        )
+        val hand = handOf(
+            Tile(Man, 1),
+            Tile(Man, 1),
+            Tile(Man, 1)
+        )
+        val result = resolver.resolve(hand)
+        result.size shouldBe 1
+        result[0].hasYaochuhaiFlag() shouldBe true
+    }
+
+    test("mixed hand with yaochuhai and non-yaochuhai sets flags correctly") {
+        val resolver = StandardFastTileResolver(
+            StandardShuntsuStrategy,
+            StandardKoutsuStrategy,
+            StandardKantsuStrategy
+        )
+        val hand = handOf(
+            Tile(Wind, 1), Tile(Wind, 1), Tile(Wind, 1), // yaochuhai
+            Tile(Man, 2), Tile(Man, 2), Tile(Man, 2)     // non-yaochuhai
+        )
+        val result = resolver.resolve(hand)
+        result.size shouldBe 1
+        val mentsus = result[0].map { CompactMentsu(it) }
+        mentsus.map { it.containsYaochuhai } shouldContainExactlyInAnyOrder listOf(true, false)
     }
 })

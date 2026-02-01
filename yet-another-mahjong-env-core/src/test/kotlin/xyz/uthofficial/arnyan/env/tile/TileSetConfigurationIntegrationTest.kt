@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory
 import xyz.uthofficial.arnyan.env.error.WallError
 import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.result.Result
-import xyz.uthofficial.arnyan.env.tile.StandardTileType.*
 import xyz.uthofficial.arnyan.env.tile.dsl.and
 import xyz.uthofficial.arnyan.env.tile.dsl.of
 

@@ -373,6 +373,66 @@ class KSPProcessorTest : FunSpec({
         connectivityMask[4] shouldBe 2
     }
 
+    test("should generate correct yaochuhai indices for honors and suits") {
+        val source = SourceFile.kotlin(
+            "YaochuhaiTestTiles.kt",
+            """
+            package test.pkg
+
+            import xyz.uthofficial.arnyan.env.utils.annotations.RegisterTileType
+            import xyz.uthofficial.arnyan.env.tile.TileType
+
+            @RegisterTileType
+            object HonorType : TileType {
+                override val intRange: IntRange = 1..4
+            }
+
+            @RegisterTileType
+            object SuitType : TileType {
+                override val intRange: IntRange = 1..9
+                override val isContinuous: Boolean = true
+            }
+
+            @RegisterTileType
+            object AnotherSuit : TileType {
+                override val intRange: IntRange = 1..5
+                override val isContinuous: Boolean = true
+            }
+            """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            useKsp2()
+            symbolProcessorProviders = mutableListOf(TestProcessorProvider())
+            inheritClassPath = true
+            messageOutputStream = System.out
+        }
+
+        val result = compilation.compile()
+        result.exitCode shouldBe KotlinCompilation.ExitCode.OK
+
+        val registryClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.generated.TileTypeRegistry")
+        val instance = registryClass.kotlin.objectInstance!!
+
+        val yaochuhaiIndicesProp = registryClass.getDeclaredMethod("getYaochuhaiIndices")
+        val yaochuhaiIndices = yaochuhaiIndicesProp.invoke(instance) as IntArray
+
+        // Expected indices: AnotherSuit (offset 0, count 5) -> first 0, last 4
+        // HonorType (offset 5, count 4) -> all 5,6,7,8
+        // SuitType (offset 9, count 9) -> first 9, last 17
+        // Sorted: 0,4,5,6,7,8,9,17
+        yaochuhaiIndices.size shouldBe 8
+        yaochuhaiIndices[0] shouldBe 0
+        yaochuhaiIndices[1] shouldBe 4
+        yaochuhaiIndices[2] shouldBe 5
+        yaochuhaiIndices[3] shouldBe 6
+        yaochuhaiIndices[4] shouldBe 7
+        yaochuhaiIndices[5] shouldBe 8
+        yaochuhaiIndices[6] shouldBe 9
+        yaochuhaiIndices[7] shouldBe 17
+    }
+
     test("should generate registry for valid annotated object implementing MentsuType") {
         val source = SourceFile.kotlin(
             "TestMentsu.kt",

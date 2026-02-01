@@ -59,6 +59,31 @@ class TileTypeRegistryHandler(
             "connectivityMask", IntArray::class.asClassName()
         ).initializer(maskBlock.build()).build()
 
+        val yaochuhaiIndices = PropertySpec.builder(
+            "yaochuhaiIndices", IntArray::class.asClassName()
+        ).initializer(
+            CodeBlock.builder().apply {
+                add("intArrayOf(")
+                sortedSymbols.forEachIndexed { _, symbol ->
+                    val range = ranges[symbol]!!
+                    val offset = offsets[symbol]!!
+                    val count = range.last - range.first + 1
+                    val isCont = isContinuous(symbol)
+                    if (isCont) {
+                        add("%L, ", offset)
+                        if (count > 1) {
+                            add("%L, ", offset + count - 1)
+                        }
+                    } else {
+                        repeat(count) { i ->
+                            add("%L, ", offset + i)
+                        }
+                    }
+                }
+                add(")")
+            }.build()
+        ).build()
+
         val getHistogram = FunSpec.builder("getHistogram")
             .addParameter("hand", List::class.asClassName().parameterizedBy(Tile::class.asClassName()))
             .addParameter(
@@ -142,7 +167,7 @@ class TileTypeRegistryHandler(
                 TypeSpec.objectBuilder(fileName).addModifiers(KModifier.FINAL)
                     .addProperty(tileTypes)
                     .addProperty(SIZE)
-                    .addProperty(connectivityMask)
+                    .addProperty(connectivityMask).addProperty(yaochuhaiIndices)
                     .addProperties(segmentProperties)
                     .addProperty(segmentNone)
                     .addFunction(getHistogram)

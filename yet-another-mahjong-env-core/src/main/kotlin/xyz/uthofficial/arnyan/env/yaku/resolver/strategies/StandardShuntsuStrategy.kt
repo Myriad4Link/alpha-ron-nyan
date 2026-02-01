@@ -9,7 +9,7 @@ object StandardShuntsuStrategy : FastExtractStrategy {
     override fun tryRemove(histogram: IntArray, index: Int): Boolean {
         if (index > histogram.size - 3) return false
         val mask = TileTypeRegistry.connectivityMask[index]
-        if (mask < 0 || mask != TileTypeRegistry.connectivityMask[index + 2]) return false
+        if (mask > 0 || mask != TileTypeRegistry.connectivityMask[index + 2]) return false
         if (histogram[index] > 0 && histogram[index + 1] > 0 && histogram[index + 2] > 0) {
             histogram[index]--
             histogram[index + 1]--

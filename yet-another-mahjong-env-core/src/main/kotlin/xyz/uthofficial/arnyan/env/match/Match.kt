@@ -4,7 +4,6 @@ import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.player.getPlayerSitAt
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
-import xyz.uthofficial.arnyan.env.tile.StandardTileWall
 import xyz.uthofficial.arnyan.env.tile.TileWall
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind
@@ -16,17 +15,14 @@ class Match private constructor(
     val topology: TableTopology,
     private var currentSeatWind: Wind
 ) {
-
     fun start() = binding {
-        players.getPlayerSitAt(currentSeatWind).hand.add(wall.draw(1).bind().first())
-
+        players.getPlayerSitAt(currentSeatWind).closeHand.add(wall.draw(1).bind().first())
         val currentState = observation
         listeners.forEach { it.onMatchStarted(currentState) }
         StepResult(currentState, topology.getShimocha(currentSeatWind).bind(), false)
     }
 
     private fun next() {
-
     }
 
     fun checkOver(): Boolean = TODO()

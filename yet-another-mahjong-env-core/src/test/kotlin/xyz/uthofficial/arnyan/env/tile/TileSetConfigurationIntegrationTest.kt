@@ -12,6 +12,17 @@ import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.tile.dsl.and
 import xyz.uthofficial.arnyan.env.tile.dsl.of
+import xyz.uthofficial.arnyan.env.wind.Wind
+import xyz.uthofficial.arnyan.env.yaku.resolver.Mentsu
+import java.util.*
+
+private data class DummyPlayer(
+    override val id: UUID = UUID.randomUUID(),
+    override val closeHand: MutableList<Tile> = mutableListOf(),
+    override val openHand: MutableList<List<Tile>> = mutableListOf(),
+    override val currentMentsusComposition: MutableList<List<Mentsu>> = mutableListOf(),
+    override var seat: Wind? = null
+) : Player
 
 class TileSetConfigurationIntegrationTest : FunSpec({
     fun buildNormalTileWall(): StandardTileWall = (TileSetConfiguration().setGroup {
@@ -89,8 +100,8 @@ class TileSetConfigurationIntegrationTest : FunSpec({
             1..9 of Man
         } repeatFor 4).build().getOrThrow()
 
-        val p1 = Player()
-        val p2 = Player()
+        val p1 = DummyPlayer()
+        val p2 = DummyPlayer()
         val players = listOf(p1, p2)
 
         val initialSize = wall.size
@@ -98,11 +109,11 @@ class TileSetConfigurationIntegrationTest : FunSpec({
 
         ((wall deal dealAmount) randomlyTo players).shouldBeInstanceOf<Result.Success<Unit>>()
 
-        p1.hand.size shouldBe dealAmount
-        p2.hand.size shouldBe dealAmount
+        p1.closeHand.size shouldBe dealAmount
+        p2.closeHand.size shouldBe dealAmount
         wall.size shouldBe initialSize - (dealAmount * 2)
 
-        logger.info("P1 hand: {}\nP2 hand: {}\nWall: {}", p1.hand, p2.hand, wall.tileWall)
+        logger.info("P1 hand: {}\nP2 hand: {}\nWall: {}", p1.closeHand, p2.closeHand, wall.tileWall)
     }
 
     test("should correctly configure red doras for single type") {

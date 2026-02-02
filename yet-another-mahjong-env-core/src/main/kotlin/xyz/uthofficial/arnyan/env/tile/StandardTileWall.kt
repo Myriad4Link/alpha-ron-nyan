@@ -1,7 +1,7 @@
 package xyz.uthofficial.arnyan.env.tile
 
-import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.error.WallError
+import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 
@@ -31,7 +31,7 @@ class StandardTileWall(override val standardDealAmount: Int) : TileWall {
 
             players.forEach {
                 val drawn = wall.draw(amount).bind()
-                it.hand.addAll(drawn)
+                it.closeHand.addAll(drawn)
             }
         }
     }

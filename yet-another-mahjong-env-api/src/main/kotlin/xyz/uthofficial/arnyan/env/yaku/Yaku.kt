@@ -1,6 +1,6 @@
 package xyz.uthofficial.arnyan.env.yaku
 
-interface Yaku<T> {
+interface Yaku<MentsusType> {
     val name: String
-    fun judge(tiles: T): Boolean
+    fun judge(mentsus: MentsusType): IntArray
 }

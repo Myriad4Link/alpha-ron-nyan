@@ -4,12 +4,13 @@ import xyz.uthofficial.arnyan.env.generated.MentsuTypeRegistry
 import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
 import xyz.uthofficial.arnyan.env.tile.Tile
 
-class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
+class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) : TileResolver<IntArray, List<LongArray>> {
     private val minTileCount = strategies.minOf { it.mentsuAmount }
 
     private val histogramBuffer = IntArray(TileTypeRegistry.SIZE)
     private var mentsuBuffer = LongArray(0)
 
+    @Deprecated("Will be removed in latter versions.")
     fun resolve(hand: List<Tile>): List<LongArray> {
         TileTypeRegistry.getHistogram(hand, histogramBuffer)
 
@@ -21,10 +22,10 @@ class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) {
         return results
     }
 
-    fun resolve(histogram: IntArray): List<LongArray> {
-        histogram.copyInto(histogramBuffer)
+    override fun resolve(hand: IntArray): List<LongArray> {
+        hand.copyInto(histogramBuffer)
 
-        val totalTiles = histogram.sum()
+        val totalTiles = hand.sum()
         val maxMentsu = totalTiles / minTileCount
         if (mentsuBuffer.size < maxMentsu) mentsuBuffer = LongArray(maxMentsu)
 

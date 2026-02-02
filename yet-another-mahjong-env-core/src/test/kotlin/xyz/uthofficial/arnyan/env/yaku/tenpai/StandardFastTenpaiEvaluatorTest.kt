@@ -1,4 +1,4 @@
-package xyz.uthofficial.arnyan.env.yaku.resolver
+package xyz.uthofficial.arnyan.env.yaku.tenpai
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.maps.shouldContainKey
@@ -8,6 +8,9 @@ import xyz.uthofficial.arnyan.env.tile.Man
 import xyz.uthofficial.arnyan.env.tile.Pin
 import xyz.uthofficial.arnyan.env.tile.Sou
 import xyz.uthofficial.arnyan.env.tile.Tile
+import xyz.uthofficial.arnyan.env.yaku.resolver.CompactMentsu
+import xyz.uthofficial.arnyan.env.yaku.resolver.StandardFastTileResolver
+import xyz.uthofficial.arnyan.env.yaku.resolver.Toitsu
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKantsuStrategy
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKoutsuStrategy
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardShuntsuStrategy

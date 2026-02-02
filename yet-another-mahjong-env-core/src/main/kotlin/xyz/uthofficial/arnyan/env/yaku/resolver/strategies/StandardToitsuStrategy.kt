@@ -7,17 +7,17 @@ import xyz.uthofficial.arnyan.env.yaku.resolver.Toitsu
 object StandardToitsuStrategy : FastExtractStrategy {
     override val type: MentsuType = Toitsu
 
-    override val tileOffsets: IntArray = intArrayOf(0, 0)
+    override val mentsuAmount: Int = 2
 
-    override fun tryRemove(histogram: IntArray, index: Int): Boolean {
+    override fun tryRemove(histogram: IntArray, index: Int): IntArray? {
         if (histogram[index] >= 2) {
             histogram[index] -= 2
-            return true
+            return intArrayOf(index, index)
         }
-        return false
+        return null
     }
 
-    override fun revert(histogram: IntArray, index: Int) {
-        histogram[index] += 2
+    override fun revert(histogram: IntArray, removedIndices: IntArray) {
+        histogram[removedIndices[0]] += 2
     }
 }

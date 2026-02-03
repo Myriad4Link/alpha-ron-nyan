@@ -40,13 +40,13 @@ class SanmaStandardTableTopologyTest : FunSpec({
         val emptyConfig = PlayerSeatWindRotationConfiguration()
         val emptyResult = emptyConfig.build()
         emptyResult.shouldBeInstanceOf<Result.Failure<ConfigurationError>>()
-        emptyResult.error.shouldBeInstanceOf<ConfigurationError.InvalidConfiguration>()
+        emptyResult.error.shouldBeInstanceOf<ConfigurationError.SeatOrderConfigurationError.EmptySeatOrder>()
 
         val duplicateConfig = PlayerSeatWindRotationConfiguration().apply {
             EAST - EAST
         }
         val duplicateResult = duplicateConfig.build()
         duplicateResult.shouldBeInstanceOf<Result.Failure<ConfigurationError>>()
-        duplicateResult.error.shouldBeInstanceOf<ConfigurationError.InvalidConfiguration>()
+        duplicateResult.error.shouldBeInstanceOf<ConfigurationError.SeatOrderConfigurationError.DuplicateSeats>()
     }
 })

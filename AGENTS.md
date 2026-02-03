@@ -56,7 +56,10 @@ alpha-ron-nyan/
 - `MatchObservation`: Immutable snapshot of match state (players, wall, current wind).
 
 ### 4. **Rules**
-- `RuleSet`: Aggregates `WallGenerationRule`, `PlayerWindRotationOrderRule`, `YakuRule`.
+
+- `RuleSet`: Aggregates `WallGenerationRule`, `PlayerWindRotationOrderRule`, `RoundWindRotationRule`, `YakuRule`.
+- `RoundWindRotationRule`: Specifies the rotation rule of round wind, including the range of each wind (e.g., East 1..3,
+  South 1..3).
 - `Yaku`: Interface for scoring patterns; includes preconditions for detection.
 - `YakuConfiguration`: Configures which yaku are active and their han values.
 
@@ -102,7 +105,9 @@ alpha-ron-nyan/
 4. Use `TileTypeRegistry` (generated) to enumerate all registered tile types.
 
 ### Implementing a Custom Rule
-1. Implement the relevant `Rule` interface (`WallGenerationRule`, `WindRotationRule`, `YakuRule`).
+
+1. Implement the relevant `Rule` interface (`WallGenerationRule`, `PlayerWindRotationRule`, `RoundWindRotationRule`,
+   `YakuRule`).
 2. Provide the rule to `RuleSet` when creating a `Match`.
 3. Rules are invoked via the `binding` DSL; return `Result` to propagate errors.
 

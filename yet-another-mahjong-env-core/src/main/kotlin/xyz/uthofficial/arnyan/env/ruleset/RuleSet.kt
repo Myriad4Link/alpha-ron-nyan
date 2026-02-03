@@ -1,20 +1,25 @@
 package xyz.uthofficial.arnyan.env.ruleset
 
+import xyz.uthofficial.arnyan.env.ruleset.base.PlayerWindRotationRule
+import xyz.uthofficial.arnyan.env.ruleset.base.RoundWindRotationRule
 import xyz.uthofficial.arnyan.env.ruleset.base.WallGenerationRule
-import xyz.uthofficial.arnyan.env.ruleset.base.WindRotationRule
-import xyz.uthofficial.arnyan.env.wind.StandardWind.*
+import xyz.uthofficial.arnyan.env.tile.*
+import xyz.uthofficial.arnyan.env.tile.dsl.allOf
+import xyz.uthofficial.arnyan.env.tile.dsl.and
+import xyz.uthofficial.arnyan.env.tile.dsl.of
 import xyz.uthofficial.arnyan.env.wind.PlayerSeatWindRotationConfiguration
-import xyz.uthofficial.arnyan.env.tile.TileSetConfiguration
-import xyz.uthofficial.arnyan.env.tile.Man
-import xyz.uthofficial.arnyan.env.tile.Sou
-import xyz.uthofficial.arnyan.env.tile.Pin
-import xyz.uthofficial.arnyan.env.tile.Wind
-import xyz.uthofficial.arnyan.env.tile.Dragon
-import xyz.uthofficial.arnyan.env.tile.dsl.*
+import xyz.uthofficial.arnyan.env.wind.RoundWindRotationConfiguration
+import xyz.uthofficial.arnyan.env.wind.StandardWind.*
 
 data class RuleSet(
     val wallGenerationRule: WallGenerationRule,
-    val playerWindRotationOrderRule: WindRotationRule
+    val playerWindRotationOrderRule: PlayerWindRotationRule,
+    val roundWindRotationRule: RoundWindRotationRule = {
+        RoundWindRotationConfiguration().apply {
+            EAST * 4
+            SOUTH * 4
+        }.build()
+    }
 ) {
     companion object {
         val RIICHI_SANMA_TENHOU = RuleSet(
@@ -28,6 +33,12 @@ data class RuleSet(
             playerWindRotationOrderRule = {
                 PlayerSeatWindRotationConfiguration().apply {
                     EAST - SOUTH - WEST
+                }.build()
+            },
+            roundWindRotationRule = {
+                RoundWindRotationConfiguration().apply {
+                    EAST * 4
+                    SOUTH * 4
                 }.build()
             }
         )

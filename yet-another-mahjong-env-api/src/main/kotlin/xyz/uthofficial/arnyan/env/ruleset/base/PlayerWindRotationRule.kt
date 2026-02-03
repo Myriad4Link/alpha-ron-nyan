@@ -4,6 +4,6 @@ import xyz.uthofficial.arnyan.env.error.ConfigurationError
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 
-fun interface WindRotationRule {
+fun interface PlayerWindRotationRule {
     fun build(): Result<TableTopology, ConfigurationError>
 }

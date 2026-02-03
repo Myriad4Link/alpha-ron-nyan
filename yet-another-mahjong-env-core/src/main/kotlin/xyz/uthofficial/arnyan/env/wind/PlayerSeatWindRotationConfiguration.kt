@@ -19,13 +19,13 @@ class PlayerSeatWindRotationConfiguration {
     }
 
     fun build(): Result<TableTopology, ConfigurationError> {
-        return when {
-            rotationOrder.isEmpty() -> Result.Failure(ConfigurationError.InvalidConfiguration("Seat order cannot be empty"))
-
-            rotationOrder.distinct().size != rotationOrder.size ->
-                Result.Failure(ConfigurationError.InvalidConfiguration("Seat order cannot contain duplicates"))
-
-            else -> Result.Success(SanmaStandardTableTopology(rotationOrder))
+        if (rotationOrder.isEmpty()) {
+            return Result.Failure(ConfigurationError.SeatOrderConfigurationError.EmptySeatOrder)
         }
+        val duplicates = rotationOrder.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
+        if (duplicates.isNotEmpty()) {
+            return Result.Failure(ConfigurationError.SeatOrderConfigurationError.DuplicateSeats(duplicates.toSet()))
+        }
+        return Result.Success(SanmaStandardTableTopology(rotationOrder))
     }
 }

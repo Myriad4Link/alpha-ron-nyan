@@ -5,6 +5,7 @@ import xyz.uthofficial.arnyan.env.player.getPlayerSitAt
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
 import xyz.uthofficial.arnyan.env.tile.TileWall
+import xyz.uthofficial.arnyan.env.wind.RoundWindCycle
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind
 
@@ -13,9 +14,13 @@ class Match private constructor(
     private val players: List<Player>,
     var wall: TileWall,
     val topology: TableTopology,
-    private var currentSeatWind: Wind
+    private var currentSeatWind: Wind,
+    val roundWindCycle: RoundWindCycle
 ) {
+//    var round: Pair<Pair<Wind, Int>, Int> = ()
+
     fun start() = binding {
+
         players.getPlayerSitAt(currentSeatWind).closeHand.add(wall.draw(1).bind().first())
         val currentState = observation
         listeners.forEach { it.onMatchStarted(currentState) }
@@ -23,6 +28,7 @@ class Match private constructor(
     }
 
     private fun next() {
+
     }
 
     fun checkOver(): Boolean = TODO()
@@ -32,7 +38,8 @@ class Match private constructor(
             players = players,
             wall = wall,
             topology = topology,
-            currentSeatWind = currentSeatWind
+            currentSeatWind = currentSeatWind,
+            roundWindCycle = roundWindCycle
         )
 
     companion object {
@@ -46,6 +53,7 @@ class Match private constructor(
             (wall deal wall.standardDealAmount randomlyTo playerList).bind()
 
             val topology = ruleSet.playerWindRotationOrderRule.build().bind()
+            val roundWindCycle = ruleSet.roundWindRotationRule.build().bind()
 
             if (shuffleWinds)
                 playerList.assignSeatRandomly(topology)
@@ -59,7 +67,8 @@ class Match private constructor(
                 playerList,
                 wall,
                 topology,
-                currentSeatWind
+                currentSeatWind,
+                roundWindCycle
             )
 
             listeners.forEach { it.onMatchStarted(match.observation) }

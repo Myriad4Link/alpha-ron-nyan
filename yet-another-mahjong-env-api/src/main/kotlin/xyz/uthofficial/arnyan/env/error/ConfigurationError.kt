@@ -18,6 +18,10 @@ sealed interface ConfigurationError : ArnyanError {
         data class DuplicateSeats(val duplicates: Set<Wind>) : SeatOrderConfigurationError
     }
 
+    sealed interface TileSetConfigurationError : ConfigurationError {
+        data class InvalidTileSetConfiguration(val message: String) : TileSetConfigurationError
+    }
+
     sealed interface GenericConfigurationError : ConfigurationError {
         data class InvalidConfiguration(val message: String, val cause: Throwable? = null) : GenericConfigurationError
     }

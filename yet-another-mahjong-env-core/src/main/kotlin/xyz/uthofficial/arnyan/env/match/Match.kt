@@ -5,7 +5,7 @@ import xyz.uthofficial.arnyan.env.player.getPlayerSitAt
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
 import xyz.uthofficial.arnyan.env.tile.TileWall
-import xyz.uthofficial.arnyan.env.wind.RoundWindCycle
+import xyz.uthofficial.arnyan.env.wind.RoundRotationStatus
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind
 
@@ -15,19 +15,16 @@ class Match private constructor(
     var wall: TileWall,
     val topology: TableTopology,
     private var currentSeatWind: Wind,
-    val roundWindCycle: RoundWindCycle
+    var roundRotationStatus: RoundRotationStatus
 ) {
-//    var round: Pair<Pair<Wind, Int>, Int> = ()
-
     fun start() = binding {
-
         players.getPlayerSitAt(currentSeatWind).closeHand.add(wall.draw(1).bind().first())
         val currentState = observation
         listeners.forEach { it.onMatchStarted(currentState) }
         StepResult(currentState, topology.getShimocha(currentSeatWind).bind(), false)
     }
 
-    private fun next() {
+    fun submitAction(player: Player) {
 
     }
 
@@ -39,7 +36,7 @@ class Match private constructor(
             wall = wall,
             topology = topology,
             currentSeatWind = currentSeatWind,
-            roundWindCycle = roundWindCycle
+            roundRotationStatus = roundRotationStatus
         )
 
     companion object {
@@ -68,7 +65,7 @@ class Match private constructor(
                 wall,
                 topology,
                 currentSeatWind,
-                roundWindCycle
+                roundWindCycle.startRoundRotationStatus
             )
 
             listeners.forEach { it.onMatchStarted(match.observation) }

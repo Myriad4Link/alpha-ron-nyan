@@ -5,9 +5,9 @@ object Riichi : FastYaku {
         get() = "Riichi"
 
     override fun judge(mentsus: LongArray, context: YakuContext?): IntArray {
-        // TODO: Implement riichi detection based on game state
-        // Riichi yaku requires player to have declared riichi, which is not captured in mentsus.
-        // Returning empty array indicates yaku not applicable based on hand composition alone.
+        if (context?.isRiichiDeclared == true) {
+            return intArrayOf(1)
+        }
         return intArrayOf()
     }
 }

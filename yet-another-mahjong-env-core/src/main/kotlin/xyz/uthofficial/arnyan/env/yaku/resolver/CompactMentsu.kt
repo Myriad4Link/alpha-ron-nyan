@@ -94,7 +94,7 @@ value class CompactMentsu(val raw: Long) : Mentsu {
     val tile4Index: Int get() = tileIndex(TILE4_SHIFT)
     
     private val mentsuTypeIndex: Int get() = ((raw shr TYPE_SHIFT) and TYPE_MASK).toInt()
-    private val tileCount: Int get() = ((raw shr TILE_COUNT_SHIFT) and TILE_COUNT_MASK).toInt()
+    val tileCount: Int get() = ((raw shr TILE_COUNT_SHIFT) and TILE_COUNT_MASK).toInt()
     
     override val mentsuType: MentsuType
         get() = MentsuTypeRegistry.getMentsuType(mentsuTypeIndex)

@@ -1,7 +1,7 @@
 package xyz.uthofficial.arnyan.env.yaku
 
-import xyz.uthofficial.arnyan.env.wind.Wind
 import xyz.uthofficial.arnyan.env.tile.Tile
+import xyz.uthofficial.arnyan.env.wind.Wind
 
 enum class WinningMethod {
     RON,

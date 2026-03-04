@@ -29,13 +29,13 @@ class BindingTest : FunSpec({
         result.shouldBeInstanceOf<Result.Success<Int>>()
         result.value shouldBe 42
     }
-    
+
     test("bind should not interfere with existing Result.bind failures") {
         val innerError = ConfigurationError.GenericConfigurationError.InvalidConfiguration("Inner error")
-        
+
         val result = binding<Int, ArnyanError> {
             binding({ ConfigurationError.GenericConfigurationError.InvalidConfiguration("Wrapped: ${it.message}") }) {
-                Result.Failure(innerError).bind() 
+                Result.Failure(innerError).bind()
             }
         }
 

@@ -25,7 +25,7 @@ class StandardTileWall(override val standardDealAmount: Int) : TileWall {
 
     override infix fun deal(amount: Int): TileWall.Dealer = StandardDealer(amount, this)
 
-    class StandardDealer(private val amount: Int, private val wall: StandardTileWall): TileWall.Dealer {
+    class StandardDealer(private val amount: Int, private val wall: StandardTileWall) : TileWall.Dealer {
         override infix fun randomlyTo(players: List<Player>): Result<Unit, WallError> = binding {
             wall.shuffle()
 

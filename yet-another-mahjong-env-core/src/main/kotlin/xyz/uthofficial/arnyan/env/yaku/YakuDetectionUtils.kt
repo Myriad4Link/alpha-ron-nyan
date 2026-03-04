@@ -29,7 +29,8 @@ internal fun Int.toStandardWind(): StandardWind? = when (this) {
     else -> null
 }
 
-internal fun CompactMentsu.tileIndices(): List<Int> = listOf(tile1Index, tile2Index, tile3Index, tile4Index).take(tileCount)
+internal fun CompactMentsu.tileIndices(): List<Int> =
+    listOf(tile1Index, tile2Index, tile3Index, tile4Index).take(tileCount)
 
 internal fun CompactMentsu.isKoutsu(): Boolean = mentsuType == MentsuTypeRegistry.mentsuTypes[2]
 

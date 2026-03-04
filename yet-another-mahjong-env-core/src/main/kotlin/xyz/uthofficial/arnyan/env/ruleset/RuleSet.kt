@@ -4,7 +4,6 @@ import xyz.uthofficial.arnyan.env.ruleset.base.PlayerWindRotationRule
 import xyz.uthofficial.arnyan.env.ruleset.base.RoundWindRotationRule
 import xyz.uthofficial.arnyan.env.ruleset.base.WallGenerationRule
 import xyz.uthofficial.arnyan.env.ruleset.base.YakuRule
-import xyz.uthofficial.arnyan.env.yaku.StandardYakuRule
 import xyz.uthofficial.arnyan.env.tile.*
 import xyz.uthofficial.arnyan.env.tile.dsl.allOf
 import xyz.uthofficial.arnyan.env.tile.dsl.and
@@ -12,6 +11,7 @@ import xyz.uthofficial.arnyan.env.tile.dsl.of
 import xyz.uthofficial.arnyan.env.wind.PlayerSeatWindRotationConfiguration
 import xyz.uthofficial.arnyan.env.wind.RoundWindRotationConfiguration
 import xyz.uthofficial.arnyan.env.wind.StandardWind.*
+import xyz.uthofficial.arnyan.env.yaku.StandardYakuRule
 
 data class RuleSet(
     val wallGenerationRule: WallGenerationRule,

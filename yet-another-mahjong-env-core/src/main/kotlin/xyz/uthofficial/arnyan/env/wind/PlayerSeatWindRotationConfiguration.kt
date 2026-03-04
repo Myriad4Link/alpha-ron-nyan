@@ -26,6 +26,6 @@ class PlayerSeatWindRotationConfiguration {
         if (duplicates.isNotEmpty()) {
             return Result.Failure(ConfigurationError.SeatOrderConfigurationError.DuplicateSeats(duplicates.toSet()))
         }
-        return Result.Success(SanmaStandardTableTopology(rotationOrder))
+        return Result.Success(CyclicTableTopology(rotationOrder))
     }
 }

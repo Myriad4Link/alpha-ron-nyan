@@ -8,9 +8,9 @@ import xyz.uthofficial.arnyan.env.error.TopologyError
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.wind.StandardWind.*
 
-class SanmaStandardTableTopologyTest : FunSpec({
+class CyclicTableTopologyTest : FunSpec({
     val seatOrder = listOf(EAST, SOUTH, WEST)
-    val topology = SanmaStandardTableTopology(seatOrder)
+    val topology = CyclicTableTopology(seatOrder)
 
     test("should get correct Shimocha (next player)") {
         topology.getShimocha(EAST).getOrThrow() shouldBe SOUTH
@@ -24,7 +24,7 @@ class SanmaStandardTableTopologyTest : FunSpec({
         topology.getKamicha(SOUTH).getOrThrow() shouldBe EAST
     }
 
-    test("getToimen should always return failure in Sanma") {
+    test("getToimen should always return failure in 3‑player topology") {
         val result = topology.getToimen(EAST)
         result.shouldBeInstanceOf<Result.Failure<TopologyError>>()
         result.error.shouldBeInstanceOf<TopologyError.NoToimenAvailable>()

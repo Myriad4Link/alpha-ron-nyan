@@ -11,11 +11,11 @@ import xyz.uthofficial.arnyan.env.yaku.resolver.Koutsu
 
 class StandardKoutsuStrategyTest : FunSpec({
     val registry = TileTypeRegistry
-    
+
     fun histogramOf(vararg tiles: Tile): IntArray {
         return registry.getHistogram(tiles.toList())
     }
-    
+
     fun segmentStart(tileType: xyz.uthofficial.arnyan.env.tile.TileType): Int {
         return registry.getSegment(tileType)[0]
     }
@@ -25,7 +25,7 @@ class StandardKoutsuStrategyTest : FunSpec({
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val result = StandardKoutsuStrategy.tryRemove(histogram, index)
 
         result shouldNotBe null
@@ -37,7 +37,7 @@ class StandardKoutsuStrategyTest : FunSpec({
             Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val result = StandardKoutsuStrategy.tryRemove(histogram, index)
 
         result shouldBe null
@@ -49,56 +49,56 @@ class StandardKoutsuStrategyTest : FunSpec({
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val result = StandardKoutsuStrategy.tryRemove(histogram, index)
 
         result shouldNotBe null
         histogram[index] shouldBe 1
     }
-    
+
     test("tryRemove should work for different tile types and values") {
         val histogram = histogramOf(
             Tile(Sou, 5), Tile(Sou, 5), Tile(Sou, 5)
         )
         val souStart = segmentStart(Sou)
         val index = souStart + 4
-        
+
         val result = StandardKoutsuStrategy.tryRemove(histogram, index)
 
         result shouldNotBe null
         histogram[index] shouldBe 0
     }
-    
+
     test("revert should restore histogram after successful tryRemove") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val removed = StandardKoutsuStrategy.tryRemove(histogram, index)
         removed shouldNotBe null
         histogram[index] shouldBe 0
 
         StandardKoutsuStrategy.revert(histogram, removed!!)
-        
+
         histogram[index] shouldBe 3
     }
-    
+
     test("revert should handle multiple increments correctly after partial removal") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val removed = StandardKoutsuStrategy.tryRemove(histogram, index)
         removed shouldNotBe null
         histogram[index] shouldBe 2
 
         StandardKoutsuStrategy.revert(histogram, removed!!)
-        
+
         histogram[index] shouldBe 5
     }
-    
+
     test("type property should return Koutsu") {
         StandardKoutsuStrategy.type shouldBe Koutsu
     }

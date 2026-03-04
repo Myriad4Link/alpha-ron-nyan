@@ -21,12 +21,12 @@ internal data class MatchState(
     val passedPlayers: MutableSet<Wind> = mutableSetOf()
 ) {
     init {
-        topology.seats.forEach { 
+        topology.seats.forEach {
             discards[it] = mutableListOf()
             availableActionsMaskPerPlayer[it] = 0
         }
     }
-    
+
     fun toObservation(): MatchObservation = MatchObservation(
         players = players,
         wall = wall,

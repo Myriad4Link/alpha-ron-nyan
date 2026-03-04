@@ -1,17 +1,13 @@
 package xyz.uthofficial.arnyan.env.yaku
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import xyz.uthofficial.arnyan.env.generated.MentsuTypeRegistry
 import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
-import xyz.uthofficial.arnyan.env.tile.*
+import xyz.uthofficial.arnyan.env.tile.Man
+import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
-import xyz.uthofficial.arnyan.env.yaku.resolver.CompactMentsu
-import xyz.uthofficial.arnyan.env.yaku.resolver.Kantsu
-import xyz.uthofficial.arnyan.env.yaku.resolver.Koutsu
-import xyz.uthofficial.arnyan.env.yaku.resolver.Shuntsu
-import xyz.uthofficial.arnyan.env.yaku.resolver.Toitsu
+import xyz.uthofficial.arnyan.env.yaku.resolver.*
 
 class BasicYakusTest : FunSpec({
     // Helper to compute tile index (Man 1 = 3, Man 2 = 4, ..., Man 9 = 11)

@@ -30,23 +30,22 @@ class TileTypeRegistryHandler(
         val SIZE = PropertySpec.builder(
             "SIZE", Int::class.asClassName()
         ).addModifiers(KModifier.CONST)
-         .initializer("%L", totalSize).build()
-                val tileTypes = PropertySpec.builder(
-                    "tileTypes", List::class.asClassName().parameterizedBy(
-                        TileType::class.asClassName()
-                    )
-                ).initializer(
-                    CodeBlock.builder().apply {
-                        add("listOf(\n")
-                        sortedSymbols.forEach { add("    %T,\n", it.toClassName()) }
-                        add(")")
-                    }.build()
-                ).build()
+            .initializer("%L", totalSize).build()
+        val tileTypes = PropertySpec.builder(
+            "tileTypes", List::class.asClassName().parameterizedBy(
+                TileType::class.asClassName()
+            )
+        ).initializer(
+            CodeBlock.builder().apply {
+                add("listOf(\n")
+                sortedSymbols.forEach { add("    %T,\n", it.toClassName()) }
+                add(")")
+            }.build()
+        ).build()
         val maskBlock = CodeBlock.builder()
         maskBlock.add("intArrayOf(")
-        sortedSymbols.forEachIndexed {
-            index,
-            symbol ->
+        sortedSymbols.forEachIndexed { index,
+                                       symbol ->
             val range = ranges[symbol]!!
             val count = range.last - range.first + 1
             val isCont = isContinuous(symbol)
@@ -96,8 +95,7 @@ class TileTypeRegistryHandler(
             .beginControlFlow("for (tile in hand)")
             .addStatement("val index = when (tile.tileType) {")
             .apply {
-                sortedSymbols.forEach {
-                    symbol ->
+                sortedSymbols.forEach { symbol ->
                     val range = ranges[symbol]!!
                     val offset = offsets[symbol]!!
                     val min = range.first
@@ -117,8 +115,7 @@ class TileTypeRegistryHandler(
             .returns(TileType::class.asClassName())
             .beginControlFlow("return when(index)")
             .apply {
-                sortedSymbols.forEach {
-                    symbol ->
+                sortedSymbols.forEach { symbol ->
                     val range = ranges[symbol]!!
                     val offset = offsets[symbol]!!
                     val count = range.last - range.first + 1

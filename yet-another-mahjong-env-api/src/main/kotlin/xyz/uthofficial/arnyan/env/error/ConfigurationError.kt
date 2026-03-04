@@ -22,6 +22,10 @@ sealed interface ConfigurationError : ArnyanError {
         data class InvalidTileSetConfiguration(val message: String) : TileSetConfigurationError
     }
 
+    sealed interface MatchConfigurationError : ConfigurationError {
+        data class PlayerCountMismatch(val playerCount: Int, val seatCount: Int) : MatchConfigurationError
+    }
+
     sealed interface GenericConfigurationError : ConfigurationError {
         data class InvalidConfiguration(val message: String, val cause: Throwable? = null) : GenericConfigurationError
     }

@@ -1,17 +1,17 @@
 package xyz.uthofficial.arnyan.env.match
 
+import xyz.uthofficial.arnyan.env.error.ActionError
 import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.result.Result
-import xyz.uthofficial.arnyan.env.error.ActionError
 import xyz.uthofficial.arnyan.env.tile.Tile
 
 interface Action {
     val id: Int
-    
+
     fun availableWhen(observation: MatchObservation, actor: Player, subject: Tile): Boolean
-    
+
     fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError>
-    
+
     companion object {
         const val ID_CHII = 1 shl 0
         const val ID_PON = 1 shl 1

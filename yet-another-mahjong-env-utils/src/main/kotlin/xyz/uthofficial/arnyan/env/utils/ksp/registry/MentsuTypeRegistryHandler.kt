@@ -16,12 +16,12 @@ class MentsuTypeRegistryHandler(
 ) {
     fun generateRegistry(symbols: List<KSClassDeclaration>) {
         val sortedSymbols = symbols.sortedBy { it.qualifiedName?.asString() ?: it.simpleName.asString() }
-        
+
         val SIZE = PropertySpec.builder(
             "SIZE", Int::class.asClassName()
         ).addModifiers(KModifier.CONST)
-         .initializer("%L", sortedSymbols.size).build()
-        
+            .initializer("%L", sortedSymbols.size).build()
+
         val mentsuTypes = PropertySpec.builder(
             "mentsuTypes", List::class.asClassName().parameterizedBy(
                 MentsuType::class.asClassName()
@@ -33,7 +33,7 @@ class MentsuTypeRegistryHandler(
                 add(")")
             }.build()
         ).build()
-        
+
         val getIndex = FunSpec.builder("getIndex")
             .addParameter("mentsuType", MentsuType::class.asClassName())
             .returns(Int::class)
@@ -46,7 +46,7 @@ class MentsuTypeRegistryHandler(
             .addStatement("else -> -1")
             .endControlFlow()
             .build()
-        
+
         val getMentsuType = FunSpec.builder("getMentsuType")
             .addParameter("index", Int::class)
             .returns(MentsuType::class.asClassName())
@@ -59,7 +59,7 @@ class MentsuTypeRegistryHandler(
             .addStatement("else -> throw %T(%S)", IllegalArgumentException::class, "Index out of bounds")
             .endControlFlow()
             .build()
-        
+
         FileSpec.builder(packageName, fileName)
             .addType(
                 TypeSpec.objectBuilder(fileName).addModifiers(KModifier.FINAL)

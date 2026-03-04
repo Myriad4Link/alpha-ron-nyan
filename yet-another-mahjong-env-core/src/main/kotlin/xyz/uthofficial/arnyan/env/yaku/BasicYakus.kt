@@ -1,8 +1,6 @@
 package xyz.uthofficial.arnyan.env.yaku
 
 import xyz.uthofficial.arnyan.env.yaku.resolver.CompactMentsu
-import xyz.uthofficial.arnyan.env.wind.StandardWind
-import xyz.uthofficial.arnyan.env.yaku.WinningMethod
 
 object Tanyao : FastYaku {
     override val name: String
@@ -51,10 +49,10 @@ object Pinfu : FastYaku {
     override fun judge(mentsus: LongArray, context: YakuContext?): IntArray {
         if (context == null || context.isOpenHand) return intArrayOf()
         if (mentsus.size != 5) return intArrayOf()
-        
+
         var shuntsuCount = 0
         var pairMentsu: CompactMentsu? = null
-        
+
         for (packed in mentsus) {
             val mentsu = CompactMentsu(packed)
             when {
@@ -63,7 +61,7 @@ object Pinfu : FastYaku {
                 else -> return intArrayOf() // contains koutsu/kantsu
             }
         }
-        
+
         if (shuntsuCount == 4 && pairMentsu != null) {
             val pairTileIndex = pairMentsu.tile1Index
             // Pair must not be yaochuhai (terminals or honors)

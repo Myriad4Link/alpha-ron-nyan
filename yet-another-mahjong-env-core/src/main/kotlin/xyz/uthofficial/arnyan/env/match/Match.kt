@@ -1,6 +1,7 @@
 package xyz.uthofficial.arnyan.env.match
 
 import xyz.uthofficial.arnyan.env.error.ActionError
+import xyz.uthofficial.arnyan.env.error.ConfigurationError
 import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
@@ -30,7 +31,11 @@ class Match private constructor(
     fun checkOver(): Boolean = engine.checkOver(state)
 
     val observation: MatchObservation
-        get() = state.toObservation().copy(availableActions = engine.maskToActions(state.availableActionsMaskPerPlayer[state.currentSeatWind] ?: 0))
+        get() = state.toObservation().copy(
+            availableActions = engine.maskToActions(
+                state.availableActionsMaskPerPlayer[state.currentSeatWind] ?: 0
+            )
+        )
 
     companion object {
         fun create(
@@ -45,6 +50,15 @@ class Match private constructor(
             val topology = ruleSet.playerWindRotationOrderRule.build().bind()
             val roundWindCycle = ruleSet.roundWindRotationRule.build().bind()
             val yakuConfiguration = ruleSet.yakuRule.build()
+
+            if (playerList.size != topology.seats.size) {
+                Result.Failure(
+                    ConfigurationError.MatchConfigurationError.PlayerCountMismatch(
+                        playerCount = playerList.size,
+                        seatCount = topology.seats.size
+                    )
+                ).bind()
+            }
 
             if (shuffleWinds)
                 playerList.assignSeatRandomly(topology)

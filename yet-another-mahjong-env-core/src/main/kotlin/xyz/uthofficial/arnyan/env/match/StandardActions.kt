@@ -1,24 +1,23 @@
 package xyz.uthofficial.arnyan.env.match
 
-import xyz.uthofficial.arnyan.env.player.Player
-import xyz.uthofficial.arnyan.env.tile.Tile
-import xyz.uthofficial.arnyan.env.result.Result
-import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.error.ActionError
 import xyz.uthofficial.arnyan.env.error.MatchError
 import xyz.uthofficial.arnyan.env.error.wrapActionError
-import xyz.uthofficial.arnyan.env.wind.Wind
-import xyz.uthofficial.arnyan.env.wind.StandardWind
 import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
-import xyz.uthofficial.arnyan.env.yaku.resolver.StandardFastTileResolver
-import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardShuntsuStrategy
-import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKoutsuStrategy
-import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKantsuStrategy
-import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardToitsuStrategy
-import xyz.uthofficial.arnyan.env.yaku.YakuContext
+import xyz.uthofficial.arnyan.env.player.Player
+import xyz.uthofficial.arnyan.env.result.Result
+import xyz.uthofficial.arnyan.env.result.binding
+import xyz.uthofficial.arnyan.env.tile.Tile
+import xyz.uthofficial.arnyan.env.wind.StandardWind
+import xyz.uthofficial.arnyan.env.wind.Wind
 import xyz.uthofficial.arnyan.env.yaku.WinningMethod
 import xyz.uthofficial.arnyan.env.yaku.YakuConfiguration
-import xyz.uthofficial.arnyan.env.yaku.Yaku
+import xyz.uthofficial.arnyan.env.yaku.YakuContext
+import xyz.uthofficial.arnyan.env.yaku.resolver.StandardFastTileResolver
+import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKantsuStrategy
+import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKoutsuStrategy
+import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardShuntsuStrategy
+import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardToitsuStrategy
 
 private fun Tile.index(): Int = when (tileType) {
     is xyz.uthofficial.arnyan.env.tile.Dragon -> value - 1  // values 1-3 -> indices 0-2
@@ -34,20 +33,20 @@ private fun Int.isSameSuitAs(other: Int): Boolean =
 
 private fun findSequenceTiles(hand: List<Tile>, subject: Tile): Pair<Tile, Tile>? {
     val subjectIdx = subject.index()
-    
+
     // Group tiles by index
     val indexToTiles = hand.groupBy { it.index() }.mapValues { (_, tiles) -> tiles.toMutableList() }.toMutableMap()
-    
+
     val patterns = listOf(
         listOf(subjectIdx - 2, subjectIdx - 1, subjectIdx),
         listOf(subjectIdx - 1, subjectIdx, subjectIdx + 1),
         listOf(subjectIdx, subjectIdx + 1, subjectIdx + 2)
     )
-    
+
     for (pattern in patterns) {
         if (pattern.any { it < 0 || it >= TileTypeRegistry.SIZE }) continue
         if (!pattern.all { it.isSameSuitAs(subjectIdx) }) continue
-        
+
         val needed = pattern.filter { it != subjectIdx }
         val available = mutableListOf<Tile>()
         for (idx in needed) {
@@ -108,7 +107,11 @@ private fun resolvePartitions(closeHand: List<Tile>, subject: Tile? = null): Lis
     return resolver.resolve(histogram)
 }
 
-private fun computeMaxHan(yakuConfiguration: YakuConfiguration, context: YakuContext, partitions: List<LongArray>): Int {
+private fun computeMaxHan(
+    yakuConfiguration: YakuConfiguration,
+    context: YakuContext,
+    partitions: List<LongArray>
+): Int {
     if (partitions.isEmpty()) return 0
     var maxHan = 0
     for (partition in partitions) {
@@ -147,85 +150,117 @@ object Chii : Action {
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Discard) return false
         if (lastAction.tile != subject) return false
-        
+
         // Chii can only be called by the player to the left of the discarding player (kamicha)
         val discardingPlayer = lastAction.player
         val discardingSeat = discardingPlayer.seat ?: return false
         val actorSeat = actor.seat ?: return false
-        
+
         // Actor must be kamicha (left neighbor) of discarding player
         val kamicha = when (val result = observation.topology.getKamicha(discardingSeat)) {
             is Result.Success -> result.value
             is Result.Failure -> null
         } ?: return false
         if (actorSeat != kamicha) return false
-        
+
         // Check if actor's hand can form a sequence with subject
         return findSequenceTiles(actor.closeHand, subject) != null
     }
 
-    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> = binding {
-        val lastAction = observation.lastAction
-        val actorSeat = actor.seat ?: Result.Failure<ActionError>(
-            MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT).wrapActionError()
-        ).bind()
-        
-        if (lastAction !is LastAction.Discard) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.noDiscardToAction("chii")).wrapActionError()).bind()
+    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
+        binding {
+            val lastAction = observation.lastAction
+            val actorSeat = actor.seat ?: Result.Failure<ActionError>(
+                MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT)
+                    .wrapActionError()
+            ).bind()
+
+            if (lastAction !is LastAction.Discard) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.noDiscardToAction("chii")
+                    ).wrapActionError()
+                ).bind()
+            }
+            if (lastAction.tile != subject) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.TILE_MISMATCH
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            val discardingPlayer = lastAction.player
+            val discardingSeat = discardingPlayer.seat ?: StandardWind.EAST
+            if (discardingPlayer == actor) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.cannotActionOwnDiscard("chii")
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            // Actor must be kamicha (left neighbor) of discarding player
+            val kamicha = observation.topology.getKamicha(discardingSeat).wrapActionError().bind()
+            if (actorSeat != kamicha) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.CHII_ONLY_BY_KAMICHA
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            val sequenceTiles = findSequenceTiles(actor.closeHand, subject)
+                ?: Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.NO_SEQUENCE_POSSIBLE
+                    ).wrapActionError()
+                ).bind()
+
+            val (tile1, tile2) = sequenceTiles
+
+            // Create state changes instead of mutating
+            val openGroup = listOf(tile1, tile2, subject).sortedBy { it.index() }
+            val stateChanges = listOf(
+                StateChange.RemoveTilesFromHand(actorSeat, listOf(tile1, tile2)),
+                StateChange.AddOpenGroup(actorSeat, openGroup),
+                StateChange.RemoveTileFromDiscards(discardingSeat, subject)
+            )
+
+            // Remove subject from discards of the player who discarded it
+            val currentDiscards = observation.discards.toMutableMap()
+            val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()
+            // Remove the last occurrence (most recent discard)
+            val lastIndex = playerDiscards.indexOfLast { it == subject }
+            if (lastIndex != -1) {
+                playerDiscards.removeAt(lastIndex)
+            }
+            currentDiscards[discardingSeat] = playerDiscards
+
+            // Turn passes to the actor who called Chii
+            val newObservation = MatchObservation(
+                players = observation.players,
+                wall = observation.wall,
+                topology = observation.topology,
+                currentSeatWind = actorSeat,
+                roundRotationStatus = observation.roundRotationStatus,
+                discards = currentDiscards,
+                lastAction = LastAction.Chii(subject, actor),
+                yakuConfiguration = observation.yakuConfiguration
+            )
+
+            StepResult(newObservation, actorSeat, false, stateChanges)
         }
-        if (lastAction.tile != subject) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.TILE_MISMATCH).wrapActionError()).bind()
-        }
-        
-        val discardingPlayer = lastAction.player
-        val discardingSeat = discardingPlayer.seat ?: StandardWind.EAST
-        if (discardingPlayer == actor) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.cannotActionOwnDiscard("chii")).wrapActionError()).bind()
-        }
-        
-        // Actor must be kamicha (left neighbor) of discarding player
-        val kamicha = observation.topology.getKamicha(discardingSeat).wrapActionError().bind()
-        if (actorSeat != kamicha) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.CHII_ONLY_BY_KAMICHA).wrapActionError()).bind()
-        }
-        
-        val sequenceTiles = findSequenceTiles(actor.closeHand, subject)
-            ?: Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.NO_SEQUENCE_POSSIBLE).wrapActionError()).bind()
-        
-        val (tile1, tile2) = sequenceTiles
-        
-        // Create state changes instead of mutating
-        val openGroup = listOf(tile1, tile2, subject).sortedBy { it.index() }
-        val stateChanges = listOf(
-            StateChange.RemoveTilesFromHand(actorSeat, listOf(tile1, tile2)),
-            StateChange.AddOpenGroup(actorSeat, openGroup),
-            StateChange.RemoveTileFromDiscards(discardingSeat, subject)
-        )
-        
-        // Remove subject from discards of the player who discarded it
-        val currentDiscards = observation.discards.toMutableMap()
-        val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()
-        // Remove the last occurrence (most recent discard)
-        val lastIndex = playerDiscards.indexOfLast { it == subject }
-        if (lastIndex != -1) {
-            playerDiscards.removeAt(lastIndex)
-        }
-        currentDiscards[discardingSeat] = playerDiscards
-        
-        // Turn passes to the actor who called Chii
-        val newObservation = MatchObservation(
-            players = observation.players,
-            wall = observation.wall,
-            topology = observation.topology,
-            currentSeatWind = actorSeat,
-            roundRotationStatus = observation.roundRotationStatus,
-            discards = currentDiscards,
-            lastAction = LastAction.Chii(subject, actor),
-            yakuConfiguration = observation.yakuConfiguration
-        )
-        
-        StepResult(newObservation, actorSeat, false, stateChanges)
-    }
 }
 
 object Pon : Action {
@@ -237,70 +272,96 @@ object Pon : Action {
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Discard) return false
         if (lastAction.tile != subject) return false
-        
+
         // Cannot call pon on own discard
         if (lastAction.player == actor) return false
-        
+
         // Check if actor's hand contains two matching tiles
         return findMatchingTiles(actor.closeHand, subject) != null
     }
 
-    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> = binding {
-        val lastAction = observation.lastAction
-        val actorSeat = actor.seat ?: Result.Failure<ActionError>(
-            MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT).wrapActionError()
-        ).bind()
-        
-        if (lastAction !is LastAction.Discard) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.noDiscardToAction("pon")).wrapActionError()).bind()
+    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
+        binding {
+            val lastAction = observation.lastAction
+            val actorSeat = actor.seat ?: Result.Failure<ActionError>(
+                MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT)
+                    .wrapActionError()
+            ).bind()
+
+            if (lastAction !is LastAction.Discard) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.noDiscardToAction("pon")
+                    ).wrapActionError()
+                ).bind()
+            }
+            if (lastAction.tile != subject) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.TILE_MISMATCH
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            val discardingPlayer = lastAction.player
+            val discardingSeat = discardingPlayer.seat ?: StandardWind.EAST
+            if (discardingPlayer == actor) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.cannotActionOwnDiscard("pon")
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            val matchingTiles = findMatchingTiles(actor.closeHand, subject)
+                ?: Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.NO_MATCHING_TILES_FOR_PON
+                    ).wrapActionError()
+                ).bind()
+
+            val (tile1, tile2) = matchingTiles
+
+            // Create state changes instead of mutating
+            val openGroup = listOf(tile1, tile2, subject).sortedBy { it.index() }
+            val stateChanges = listOf(
+                StateChange.RemoveTilesFromHand(actorSeat, listOf(tile1, tile2)),
+                StateChange.AddOpenGroup(actorSeat, openGroup),
+                StateChange.RemoveTileFromDiscards(discardingSeat, subject)
+            )
+
+            // Remove subject from discards of the player who discarded it
+            val currentDiscards = observation.discards.toMutableMap()
+            val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()
+            // Remove the last occurrence (most recent discard)
+            val lastIndex = playerDiscards.indexOfLast { it == subject }
+            if (lastIndex != -1) {
+                playerDiscards.removeAt(lastIndex)
+            }
+            currentDiscards[discardingSeat] = playerDiscards
+
+            // Turn passes to the actor who called Pon
+            val newObservation = MatchObservation(
+                players = observation.players,
+                wall = observation.wall,
+                topology = observation.topology,
+                currentSeatWind = actorSeat,
+                roundRotationStatus = observation.roundRotationStatus,
+                discards = currentDiscards,
+                lastAction = LastAction.Pon(subject, actor),
+                yakuConfiguration = observation.yakuConfiguration
+            )
+
+            StepResult(newObservation, actorSeat, false, stateChanges)
         }
-        if (lastAction.tile != subject) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.TILE_MISMATCH).wrapActionError()).bind()
-        }
-        
-        val discardingPlayer = lastAction.player
-        val discardingSeat = discardingPlayer.seat ?: StandardWind.EAST
-        if (discardingPlayer == actor) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.cannotActionOwnDiscard("pon")).wrapActionError()).bind()
-        }
-        
-        val matchingTiles = findMatchingTiles(actor.closeHand, subject)
-            ?: Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.NO_MATCHING_TILES_FOR_PON).wrapActionError()).bind()
-        
-        val (tile1, tile2) = matchingTiles
-        
-        // Create state changes instead of mutating
-        val openGroup = listOf(tile1, tile2, subject).sortedBy { it.index() }
-        val stateChanges = listOf(
-            StateChange.RemoveTilesFromHand(actorSeat, listOf(tile1, tile2)),
-            StateChange.AddOpenGroup(actorSeat, openGroup),
-            StateChange.RemoveTileFromDiscards(discardingSeat, subject)
-        )
-        
-        // Remove subject from discards of the player who discarded it
-        val currentDiscards = observation.discards.toMutableMap()
-        val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()
-        // Remove the last occurrence (most recent discard)
-        val lastIndex = playerDiscards.indexOfLast { it == subject }
-        if (lastIndex != -1) {
-            playerDiscards.removeAt(lastIndex)
-        }
-        currentDiscards[discardingSeat] = playerDiscards
-        
-        // Turn passes to the actor who called Pon
-        val newObservation = MatchObservation(
-            players = observation.players,
-            wall = observation.wall,
-            topology = observation.topology,
-            currentSeatWind = actorSeat,
-            roundRotationStatus = observation.roundRotationStatus,
-            discards = currentDiscards,
-            lastAction = LastAction.Pon(subject, actor),
-            yakuConfiguration = observation.yakuConfiguration
-        )
-        
-        StepResult(newObservation, actorSeat, false, stateChanges)
-    }
 }
 
 object Ron : Action {
@@ -312,82 +373,114 @@ object Ron : Action {
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Discard) return false
         if (lastAction.tile != subject) return false
-        
+
         // Cannot call ron on own discard (that would be tsumo? Actually self-draw win is tsumo)
         if (lastAction.player == actor) return false
-        
+
         // Check if hand is complete with this tile and has at least one yaku
         return canWin(observation, actor, subject, WinningMethod.RON)
     }
 
-    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> = binding {
-        val lastAction = observation.lastAction
-        val actorSeat = actor.seat ?: Result.Failure<ActionError>(
-            MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT).wrapActionError()
-        ).bind()
-        
-        if (lastAction !is LastAction.Discard) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.noDiscardToAction("ron")).wrapActionError()).bind()
+    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
+        binding {
+            val lastAction = observation.lastAction
+            val actorSeat = actor.seat ?: Result.Failure<ActionError>(
+                MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT)
+                    .wrapActionError()
+            ).bind()
+
+            if (lastAction !is LastAction.Discard) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.noDiscardToAction("ron")
+                    ).wrapActionError()
+                ).bind()
+            }
+            if (lastAction.tile != subject) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.TILE_MISMATCH
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            val discardingPlayer = lastAction.player
+            val discardingSeat = discardingPlayer.seat ?: StandardWind.EAST
+            if (discardingPlayer == actor) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.cannotActionOwnDiscard("ron")
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            val partitions = resolvePartitions(actor.closeHand, subject)
+            if (partitions.isEmpty()) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.HAND_NOT_COMPLETE
+                    ).wrapActionError()
+                ).bind()
+            }
+            val seatWind = actor.seat ?: StandardWind.EAST
+            val roundWind = observation.roundRotationStatus.place
+            val isOpenHand = actor.openHand.isNotEmpty()
+            val isRiichiDeclared = false // TODO: implement riichi tracking
+            val context = YakuContext(
+                seatWind = seatWind,
+                roundWind = roundWind,
+                isOpenHand = isOpenHand,
+                isRiichiDeclared = isRiichiDeclared,
+                winningTile = subject,
+                winningMethod = WinningMethod.RON
+            )
+            val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
+            if (maxHan == 0) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.HAND_HAS_NO_YAKU
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            // Remove subject from discards of the player who discarded it
+            val currentDiscards = observation.discards.toMutableMap()
+            val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()
+            // Remove the last occurrence (most recent discard)
+            val lastIndex = playerDiscards.indexOfLast { it == subject }
+            if (lastIndex != -1) {
+                playerDiscards.removeAt(lastIndex)
+            }
+            currentDiscards[discardingSeat] = playerDiscards
+
+            val stateChanges = listOf(
+                StateChange.RemoveTileFromDiscards(discardingSeat, subject)
+            )
+
+            // Game ends with Ron
+            val newObservation = MatchObservation(
+                players = observation.players,
+                wall = observation.wall,
+                topology = observation.topology,
+                currentSeatWind = actorSeat,
+                roundRotationStatus = observation.roundRotationStatus,
+                discards = currentDiscards,
+                lastAction = LastAction.Ron(subject, actor),
+                yakuConfiguration = observation.yakuConfiguration
+            )
+
+            StepResult(newObservation, actorSeat, true, stateChanges)
         }
-        if (lastAction.tile != subject) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.TILE_MISMATCH).wrapActionError()).bind()
-        }
-        
-        val discardingPlayer = lastAction.player
-        val discardingSeat = discardingPlayer.seat ?: StandardWind.EAST
-        if (discardingPlayer == actor) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.cannotActionOwnDiscard("ron")).wrapActionError()).bind()
-        }
-        
-        val partitions = resolvePartitions(actor.closeHand, subject)
-        if (partitions.isEmpty()) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.HAND_NOT_COMPLETE).wrapActionError()).bind()
-        }
-        val seatWind = actor.seat ?: StandardWind.EAST
-        val roundWind = observation.roundRotationStatus.place
-        val isOpenHand = actor.openHand.isNotEmpty()
-        val isRiichiDeclared = false // TODO: implement riichi tracking
-        val context = YakuContext(
-            seatWind = seatWind,
-            roundWind = roundWind,
-            isOpenHand = isOpenHand,
-            isRiichiDeclared = isRiichiDeclared,
-            winningTile = subject,
-            winningMethod = WinningMethod.RON
-        )
-        val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
-        if (maxHan == 0) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.HAND_HAS_NO_YAKU).wrapActionError()).bind()
-        }
-        
-        // Remove subject from discards of the player who discarded it
-        val currentDiscards = observation.discards.toMutableMap()
-        val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()
-        // Remove the last occurrence (most recent discard)
-        val lastIndex = playerDiscards.indexOfLast { it == subject }
-        if (lastIndex != -1) {
-            playerDiscards.removeAt(lastIndex)
-        }
-        currentDiscards[discardingSeat] = playerDiscards
-        
-        val stateChanges = listOf(
-            StateChange.RemoveTileFromDiscards(discardingSeat, subject)
-        )
-        
-        // Game ends with Ron
-        val newObservation = MatchObservation(
-            players = observation.players,
-            wall = observation.wall,
-            topology = observation.topology,
-            currentSeatWind = actorSeat,
-            roundRotationStatus = observation.roundRotationStatus,
-            discards = currentDiscards,
-            lastAction = LastAction.Ron(subject, actor),
-            yakuConfiguration = observation.yakuConfiguration
-        )
-        
-        StepResult(newObservation, actorSeat, true, stateChanges)
-    }
 }
 
 object TsuMo : Action {
@@ -399,66 +492,98 @@ object TsuMo : Action {
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Draw) return false
         if (lastAction.tile != subject) return false
-        
+
         // Only the player who drew the tile can call tsumo
         if (lastAction.player != actor) return false
-        
+
         // Check if hand is complete with this tile and has at least one yaku
         return canWin(observation, actor, subject, WinningMethod.TSUMO)
     }
 
-    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> = binding {
-        val lastAction = observation.lastAction
-        val actorSeat = actor.seat ?: Result.Failure<ActionError>(
-            MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT).wrapActionError()
-        ).bind()
-        
-        if (lastAction !is LastAction.Draw) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.NO_DRAW_TO_TSUMO).wrapActionError()).bind()
+    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
+        binding {
+            val lastAction = observation.lastAction
+            val actorSeat = actor.seat ?: Result.Failure<ActionError>(
+                MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT)
+                    .wrapActionError()
+            ).bind()
+
+            if (lastAction !is LastAction.Draw) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.NO_DRAW_TO_TSUMO
+                    ).wrapActionError()
+                ).bind()
+            }
+            if (lastAction.tile != subject) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.TILE_MISMATCH
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            if (lastAction.player != actor) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.ONLY_DRAWING_PLAYER_CAN_TSUMO
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            val partitions = resolvePartitions(actor.closeHand, subject)
+            if (partitions.isEmpty()) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.HAND_NOT_COMPLETE
+                    ).wrapActionError()
+                ).bind()
+            }
+            val seatWind = actor.seat ?: StandardWind.EAST
+            val roundWind = observation.roundRotationStatus.place
+            val isOpenHand = actor.openHand.isNotEmpty()
+            val isRiichiDeclared = false // TODO: implement riichi tracking
+            val context = YakuContext(
+                seatWind = seatWind,
+                roundWind = roundWind,
+                isOpenHand = isOpenHand,
+                isRiichiDeclared = isRiichiDeclared,
+                winningTile = subject,
+                winningMethod = WinningMethod.TSUMO
+            )
+            val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
+            if (maxHan == 0) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.HAND_HAS_NO_YAKU
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            // Game ends with TsuMo
+            val newObservation = MatchObservation(
+                players = observation.players,
+                wall = observation.wall,
+                topology = observation.topology,
+                currentSeatWind = actorSeat,
+                roundRotationStatus = observation.roundRotationStatus,
+                discards = observation.discards,
+                lastAction = LastAction.TsuMo(subject, actor),
+                yakuConfiguration = observation.yakuConfiguration
+            )
+
+            StepResult(newObservation, actorSeat, true, emptyList())
         }
-        if (lastAction.tile != subject) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.TILE_MISMATCH).wrapActionError()).bind()
-        }
-        
-        if (lastAction.player != actor) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.ONLY_DRAWING_PLAYER_CAN_TSUMO).wrapActionError()).bind()
-        }
-        
-        val partitions = resolvePartitions(actor.closeHand, subject)
-        if (partitions.isEmpty()) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.HAND_NOT_COMPLETE).wrapActionError()).bind()
-        }
-        val seatWind = actor.seat ?: StandardWind.EAST
-        val roundWind = observation.roundRotationStatus.place
-        val isOpenHand = actor.openHand.isNotEmpty()
-        val isRiichiDeclared = false // TODO: implement riichi tracking
-        val context = YakuContext(
-            seatWind = seatWind,
-            roundWind = roundWind,
-            isOpenHand = isOpenHand,
-            isRiichiDeclared = isRiichiDeclared,
-            winningTile = subject,
-            winningMethod = WinningMethod.TSUMO
-        )
-        val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
-        if (maxHan == 0) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.HAND_HAS_NO_YAKU).wrapActionError()).bind()
-        }
-        
-        // Game ends with TsuMo
-        val newObservation = MatchObservation(
-            players = observation.players,
-            wall = observation.wall,
-            topology = observation.topology,
-            currentSeatWind = actorSeat,
-            roundRotationStatus = observation.roundRotationStatus,
-            discards = observation.discards,
-            lastAction = LastAction.TsuMo(subject, actor),
-            yakuConfiguration = observation.yakuConfiguration
-        )
-        
-        StepResult(newObservation, actorSeat, true, emptyList())
-    }
 }
 
 object DiscardAction : Action {
@@ -469,46 +594,55 @@ object DiscardAction : Action {
         return actor.seat == observation.currentSeatWind && actor.closeHand.contains(subject)
     }
 
-    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> = binding {
-        val seat = actor.seat ?: Result.Failure<ActionError>(
-            MatchError.ActionNotAvailable(
-                toString(),
-                StandardWind.EAST,
-                ErrorMessages.PLAYER_HAS_NO_SEAT
-            ).wrapActionError()
-        ).bind()
-        if (seat != observation.currentSeatWind) {
-            Result.Failure<ActionError>(MatchError.NotPlayersTurn(seat, observation.currentSeatWind).wrapActionError()).bind()
+    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
+        binding {
+            val seat = actor.seat ?: Result.Failure<ActionError>(
+                MatchError.ActionNotAvailable(
+                    toString(),
+                    StandardWind.EAST,
+                    ErrorMessages.PLAYER_HAS_NO_SEAT
+                ).wrapActionError()
+            ).bind()
+            if (seat != observation.currentSeatWind) {
+                Result.Failure<ActionError>(
+                    MatchError.NotPlayersTurn(seat, observation.currentSeatWind).wrapActionError()
+                ).bind()
+            }
+            val seatWind: Wind = seat
+            if (!actor.closeHand.contains(subject)) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        seatWind,
+                        ErrorMessages.TILE_NOT_IN_HAND
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            val stateChanges = listOf(
+                StateChange.RemoveTilesFromHand(seatWind, listOf(subject))
+            )
+
+            val currentDiscards = observation.discards
+            val newDiscards = currentDiscards.toMutableMap()
+            newDiscards[seatWind] = currentDiscards.getOrDefault(seatWind, emptyList()) + subject
+
+            // Keep current seat wind as discarding player until interrupts resolved
+            val nextWind = seatWind
+
+            val newObservation = MatchObservation(
+                players = observation.players,
+                wall = observation.wall,
+                topology = observation.topology,
+                currentSeatWind = seatWind,
+                roundRotationStatus = observation.roundRotationStatus,
+                discards = newDiscards,
+                lastAction = LastAction.Discard(subject, actor),
+                yakuConfiguration = observation.yakuConfiguration
+            )
+
+            StepResult(newObservation, nextWind, false, stateChanges)
         }
-        val seatWind: Wind = seat
-        if (!actor.closeHand.contains(subject)) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), seatWind, ErrorMessages.TILE_NOT_IN_HAND).wrapActionError()).bind()
-        }
-        
-        val stateChanges = listOf(
-            StateChange.RemoveTilesFromHand(seatWind, listOf(subject))
-        )
-        
-        val currentDiscards = observation.discards
-        val newDiscards = currentDiscards.toMutableMap()
-        newDiscards[seatWind] = currentDiscards.getOrDefault(seatWind, emptyList()) + subject
-        
-        // Keep current seat wind as discarding player until interrupts resolved
-        val nextWind = seatWind
-        
-        val newObservation = MatchObservation(
-            players = observation.players,
-            wall = observation.wall,
-            topology = observation.topology,
-            currentSeatWind = seatWind,
-            roundRotationStatus = observation.roundRotationStatus,
-            discards = newDiscards,
-            lastAction = LastAction.Discard(subject, actor),
-            yakuConfiguration = observation.yakuConfiguration
-        )
-        
-        StepResult(newObservation, nextWind, false, stateChanges)
-    }
 }
 
 object PassAction : Action {
@@ -519,44 +653,63 @@ object PassAction : Action {
         // Pass is only available when there is a discard to respond to
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Discard) return false
-        
+
         // Subject must be the discarded tile
         if (lastAction.tile != subject) return false
-        
+
         // Player must have at least one interrupt action (Chii, Pon, Ron) available
         // This will be determined by the engine based on player's action mask
         // We'll return true here; engine will filter based on actual availability
         return true
     }
 
-    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> = binding {
-        val seat = actor.seat
-        if (seat == null) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT).wrapActionError()).bind()
+    override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
+        binding {
+            val seat = actor.seat
+            if (seat == null) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        StandardWind.EAST,
+                        ErrorMessages.PLAYER_HAS_NO_SEAT
+                    ).wrapActionError()
+                ).bind()
+            }
+            val seatWind: Wind = seat
+
+            // Ensure we're passing on the correct discard
+            val lastAction = observation.lastAction
+            if (lastAction !is LastAction.Discard) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        seatWind,
+                        ErrorMessages.noDiscardToAction("pass")
+                    ).wrapActionError()
+                ).bind()
+            }
+            if (lastAction.tile != subject) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        seatWind,
+                        ErrorMessages.TILE_MISMATCH
+                    ).wrapActionError()
+                ).bind()
+            }
+
+            // No state changes needed, keep last action as discard (interrupt phase continues)
+            val newObservation = MatchObservation(
+                players = observation.players,
+                wall = observation.wall,
+                topology = observation.topology,
+                currentSeatWind = observation.currentSeatWind,
+                roundRotationStatus = observation.roundRotationStatus,
+                discards = observation.discards,
+                lastAction = observation.lastAction,  // Keep as Discard
+                yakuConfiguration = observation.yakuConfiguration
+            )
+
+            StepResult(newObservation, observation.currentSeatWind, false, emptyList())
         }
-        val seatWind: Wind = seat
-        
-        // Ensure we're passing on the correct discard
-        val lastAction = observation.lastAction
-        if (lastAction !is LastAction.Discard) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), seatWind, ErrorMessages.noDiscardToAction("pass")).wrapActionError()).bind()
-        }
-        if (lastAction.tile != subject) {
-            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), seatWind, ErrorMessages.TILE_MISMATCH).wrapActionError()).bind()
-        }
-        
-        // No state changes needed, keep last action as discard (interrupt phase continues)
-        val newObservation = MatchObservation(
-            players = observation.players,
-            wall = observation.wall,
-            topology = observation.topology,
-            currentSeatWind = observation.currentSeatWind,
-            roundRotationStatus = observation.roundRotationStatus,
-            discards = observation.discards,
-            lastAction = observation.lastAction,  // Keep as Discard
-            yakuConfiguration = observation.yakuConfiguration
-        )
-        
-        StepResult(newObservation, observation.currentSeatWind, false, emptyList())
-    }
 }

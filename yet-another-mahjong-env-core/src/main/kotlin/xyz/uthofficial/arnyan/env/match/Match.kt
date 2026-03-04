@@ -1,43 +1,36 @@
 package xyz.uthofficial.arnyan.env.match
 
+import xyz.uthofficial.arnyan.env.error.ActionError
 import xyz.uthofficial.arnyan.env.player.Player
-import xyz.uthofficial.arnyan.env.player.getPlayerSitAt
+import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
-import xyz.uthofficial.arnyan.env.tile.TileWall
-import xyz.uthofficial.arnyan.env.wind.RoundRotationStatus
+import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.TableTopology
-import xyz.uthofficial.arnyan.env.wind.Wind
 
 class Match private constructor(
     private val listeners: List<MatchListener>,
-    private val players: List<Player>,
-    var wall: TileWall,
-    val topology: TableTopology,
-    private var currentSeatWind: Wind,
-    var roundRotationStatus: RoundRotationStatus
+    private val state: MatchState,
+    private val engine: MatchEngine = MatchEngine()
 ) {
-    fun start() = binding {
-        players.getPlayerSitAt(currentSeatWind).closeHand.add(wall.draw(1).bind().first())
-        val currentState = observation
-        listeners.forEach { it.onMatchStarted(currentState) }
-        StepResult(currentState, topology.getShimocha(currentSeatWind).bind(), false)
+    fun start(): Result<StepResult, ActionError> = binding {
+        val stepResult = engine.start(state).bind()
+        listeners.forEach { it.onMatchStarted(observation) }
+        stepResult
     }
 
-    fun submitAction(player: Player) {
-
+    fun submitAction(player: Player, action: Action, subject: Tile): Result<StepResult, ActionError> = binding {
+        val stepResult = engine.submitAction(state, player, action, subject).bind()
+        stepResult
     }
 
-    fun checkOver(): Boolean = TODO()
+    fun submitDiscard(player: Player, tile: Tile): Result<StepResult, ActionError> =
+        submitAction(player, DiscardAction, tile)
+
+    fun checkOver(): Boolean = engine.checkOver(state)
 
     val observation: MatchObservation
-        get() = MatchObservation(
-            players = players,
-            wall = wall,
-            topology = topology,
-            currentSeatWind = currentSeatWind,
-            roundRotationStatus = roundRotationStatus
-        )
+        get() = state.toObservation().copy(availableActions = engine.maskToActions(state.availableActionsMaskPerPlayer[state.currentSeatWind] ?: 0))
 
     companion object {
         fun create(
@@ -59,14 +52,14 @@ class Match private constructor(
 
             val currentSeatWind = topology.firstSeatWind
 
-            val match = Match(
-                listeners,
-                playerList,
-                wall,
-                topology,
-                currentSeatWind,
-                roundWindCycle.startRoundRotationStatus
+            val state = MatchState(
+                players = playerList,
+                wall = wall,
+                topology = topology,
+                currentSeatWind = currentSeatWind,
+                roundRotationStatus = roundWindCycle.startRoundRotationStatus
             )
+            val match = Match(listeners, state)
 
             listeners.forEach { it.onMatchStarted(match.observation) }
             match

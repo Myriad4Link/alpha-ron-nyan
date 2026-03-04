@@ -10,17 +10,7 @@ class StandardFastTileResolver(vararg val strategies: FastExtractStrategy) : Til
     private val histogramBuffer = IntArray(TileTypeRegistry.SIZE)
     private var mentsuBuffer = LongArray(0)
 
-    @Deprecated("Will be removed in latter versions.")
-    fun resolve(hand: List<Tile>): List<LongArray> {
-        TileTypeRegistry.getHistogram(hand, histogramBuffer)
 
-        val maxMentsu = hand.size / minTileCount
-        if (mentsuBuffer.size < maxMentsu) mentsuBuffer = LongArray(maxMentsu)
-
-        val results = mutableListOf<LongArray>()
-        backtrack(0, histogramBuffer, mentsuBuffer, 0, results)
-        return results
-    }
 
     override fun resolve(hand: IntArray): List<LongArray> {
         hand.copyInto(histogramBuffer)

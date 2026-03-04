@@ -6,6 +6,19 @@ import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.RoundRotationStatus
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind
+import xyz.uthofficial.arnyan.env.yaku.YakuConfiguration
+import xyz.uthofficial.arnyan.env.yaku.YakuContext
+import xyz.uthofficial.arnyan.env.yaku.Yaku
+
+object EmptyYakuConfiguration : YakuConfiguration {
+    override infix fun Int.han(block: () -> Unit) {
+        block()
+    }
+    
+    override fun evaluate(context: YakuContext, partitions: List<LongArray>): List<Pair<Yaku<LongArray>, Int>> {
+        return emptyList()
+    }
+}
 
 data class MatchObservation(
     val players: List<ReadOnlyPlayer>,
@@ -15,5 +28,6 @@ data class MatchObservation(
     val roundRotationStatus: RoundRotationStatus,
     val discards: Map<Wind, List<Tile>> = emptyMap(),
     val lastAction: LastAction = LastAction.None,
-    val availableActions: List<Action> = emptyList()
+    val availableActions: List<Action> = emptyList(),
+    val yakuConfiguration: YakuConfiguration = EmptyYakuConfiguration
 )

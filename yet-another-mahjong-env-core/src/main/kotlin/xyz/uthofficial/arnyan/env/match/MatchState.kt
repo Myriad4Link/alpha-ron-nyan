@@ -34,6 +34,7 @@ internal data class MatchState(
         currentSeatWind = currentSeatWind,
         roundRotationStatus = roundRotationStatus,
         discards = discards.mapValues { (_, list) -> list.toList() },
-        lastAction = lastAction
+        lastAction = lastAction,
+        yakuConfiguration = yakuConfiguration
     )
 }

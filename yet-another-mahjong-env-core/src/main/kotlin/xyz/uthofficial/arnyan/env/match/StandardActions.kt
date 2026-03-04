@@ -15,6 +15,10 @@ import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardShuntsuStrate
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKoutsuStrategy
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardKantsuStrategy
 import xyz.uthofficial.arnyan.env.yaku.resolver.strategies.StandardToitsuStrategy
+import xyz.uthofficial.arnyan.env.yaku.YakuContext
+import xyz.uthofficial.arnyan.env.yaku.WinningMethod
+import xyz.uthofficial.arnyan.env.yaku.YakuConfiguration
+import xyz.uthofficial.arnyan.env.yaku.Yaku
 
 private fun Tile.index(): Int = when (tileType) {
     is xyz.uthofficial.arnyan.env.tile.Dragon -> value - 1  // values 1-3 -> indices 0-2
@@ -89,6 +93,49 @@ private fun isCompleteHand(closeHand: List<Tile>, subject: Tile? = null): Boolea
     )
     val partitions = resolver.resolve(histogram)
     return partitions.isNotEmpty()
+}
+
+private fun resolvePartitions(closeHand: List<Tile>, subject: Tile? = null): List<LongArray> {
+    val hand = if (subject != null) closeHand + subject else closeHand
+    val histogram = IntArray(TileTypeRegistry.SIZE)
+    TileTypeRegistry.getHistogram(hand, histogram)
+    val resolver = StandardFastTileResolver(
+        StandardShuntsuStrategy,
+        StandardKoutsuStrategy,
+        StandardKantsuStrategy,
+        StandardToitsuStrategy
+    )
+    return resolver.resolve(histogram)
+}
+
+private fun computeMaxHan(yakuConfiguration: YakuConfiguration, context: YakuContext, partitions: List<LongArray>): Int {
+    if (partitions.isEmpty()) return 0
+    var maxHan = 0
+    for (partition in partitions) {
+        val yakuList = yakuConfiguration.evaluate(context, listOf(partition))
+        val totalHan = yakuList.sumOf { it.second }
+        if (totalHan > maxHan) maxHan = totalHan
+    }
+    return maxHan
+}
+
+private fun canWin(observation: MatchObservation, actor: Player, subject: Tile, winningMethod: WinningMethod): Boolean {
+    val partitions = resolvePartitions(actor.closeHand, subject)
+    if (partitions.isEmpty()) return false
+    val seatWind = actor.seat ?: return false
+    val roundWind = observation.roundRotationStatus.place
+    val isOpenHand = actor.openHand.isNotEmpty()
+    val isRiichiDeclared = false // TODO: implement riichi tracking
+    val context = YakuContext(
+        seatWind = seatWind,
+        roundWind = roundWind,
+        isOpenHand = isOpenHand,
+        isRiichiDeclared = isRiichiDeclared,
+        winningTile = subject,
+        winningMethod = winningMethod
+    )
+    val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
+    return maxHan > 0
 }
 
 object Chii : Action {
@@ -173,7 +220,8 @@ object Chii : Action {
             currentSeatWind = actorSeat,
             roundRotationStatus = observation.roundRotationStatus,
             discards = currentDiscards,
-            lastAction = LastAction.Chii(subject, actor)
+            lastAction = LastAction.Chii(subject, actor),
+            yakuConfiguration = observation.yakuConfiguration
         )
         
         StepResult(newObservation, actorSeat, false, stateChanges)
@@ -247,7 +295,8 @@ object Pon : Action {
             currentSeatWind = actorSeat,
             roundRotationStatus = observation.roundRotationStatus,
             discards = currentDiscards,
-            lastAction = LastAction.Pon(subject, actor)
+            lastAction = LastAction.Pon(subject, actor),
+            yakuConfiguration = observation.yakuConfiguration
         )
         
         StepResult(newObservation, actorSeat, false, stateChanges)
@@ -267,8 +316,8 @@ object Ron : Action {
         // Cannot call ron on own discard (that would be tsumo? Actually self-draw win is tsumo)
         if (lastAction.player == actor) return false
         
-        // Check if hand is complete with this tile
-        return isCompleteHand(actor.closeHand, subject)
+        // Check if hand is complete with this tile and has at least one yaku
+        return canWin(observation, actor, subject, WinningMethod.RON)
     }
 
     override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> = binding {
@@ -290,8 +339,25 @@ object Ron : Action {
             Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.cannotActionOwnDiscard("ron")).wrapActionError()).bind()
         }
         
-        if (!isCompleteHand(actor.closeHand, subject)) {
+        val partitions = resolvePartitions(actor.closeHand, subject)
+        if (partitions.isEmpty()) {
             Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.HAND_NOT_COMPLETE).wrapActionError()).bind()
+        }
+        val seatWind = actor.seat ?: StandardWind.EAST
+        val roundWind = observation.roundRotationStatus.place
+        val isOpenHand = actor.openHand.isNotEmpty()
+        val isRiichiDeclared = false // TODO: implement riichi tracking
+        val context = YakuContext(
+            seatWind = seatWind,
+            roundWind = roundWind,
+            isOpenHand = isOpenHand,
+            isRiichiDeclared = isRiichiDeclared,
+            winningTile = subject,
+            winningMethod = WinningMethod.RON
+        )
+        val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
+        if (maxHan == 0) {
+            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.HAND_HAS_NO_YAKU).wrapActionError()).bind()
         }
         
         // Remove subject from discards of the player who discarded it
@@ -316,7 +382,8 @@ object Ron : Action {
             currentSeatWind = actorSeat,
             roundRotationStatus = observation.roundRotationStatus,
             discards = currentDiscards,
-            lastAction = LastAction.Ron(subject, actor)
+            lastAction = LastAction.Ron(subject, actor),
+            yakuConfiguration = observation.yakuConfiguration
         )
         
         StepResult(newObservation, actorSeat, true, stateChanges)
@@ -336,9 +403,8 @@ object TsuMo : Action {
         // Only the player who drew the tile can call tsumo
         if (lastAction.player != actor) return false
         
-        // Check if hand is complete with this tile
-        val complete = isCompleteHand(actor.closeHand, subject)
-        return complete
+        // Check if hand is complete with this tile and has at least one yaku
+        return canWin(observation, actor, subject, WinningMethod.TSUMO)
     }
 
     override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> = binding {
@@ -358,8 +424,25 @@ object TsuMo : Action {
             Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.ONLY_DRAWING_PLAYER_CAN_TSUMO).wrapActionError()).bind()
         }
         
-        if (!isCompleteHand(actor.closeHand, subject)) {
+        val partitions = resolvePartitions(actor.closeHand, subject)
+        if (partitions.isEmpty()) {
             Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.HAND_NOT_COMPLETE).wrapActionError()).bind()
+        }
+        val seatWind = actor.seat ?: StandardWind.EAST
+        val roundWind = observation.roundRotationStatus.place
+        val isOpenHand = actor.openHand.isNotEmpty()
+        val isRiichiDeclared = false // TODO: implement riichi tracking
+        val context = YakuContext(
+            seatWind = seatWind,
+            roundWind = roundWind,
+            isOpenHand = isOpenHand,
+            isRiichiDeclared = isRiichiDeclared,
+            winningTile = subject,
+            winningMethod = WinningMethod.TSUMO
+        )
+        val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
+        if (maxHan == 0) {
+            Result.Failure<ActionError>(MatchError.ActionNotAvailable(toString(), actorSeat, ErrorMessages.HAND_HAS_NO_YAKU).wrapActionError()).bind()
         }
         
         // Game ends with TsuMo
@@ -370,7 +453,8 @@ object TsuMo : Action {
             currentSeatWind = actorSeat,
             roundRotationStatus = observation.roundRotationStatus,
             discards = observation.discards,
-            lastAction = LastAction.TsuMo(subject, actor)
+            lastAction = LastAction.TsuMo(subject, actor),
+            yakuConfiguration = observation.yakuConfiguration
         )
         
         StepResult(newObservation, actorSeat, true, emptyList())
@@ -419,7 +503,8 @@ object DiscardAction : Action {
             currentSeatWind = seatWind,
             roundRotationStatus = observation.roundRotationStatus,
             discards = newDiscards,
-            lastAction = LastAction.Discard(subject, actor)
+            lastAction = LastAction.Discard(subject, actor),
+            yakuConfiguration = observation.yakuConfiguration
         )
         
         StepResult(newObservation, nextWind, false, stateChanges)
@@ -468,7 +553,8 @@ object PassAction : Action {
             currentSeatWind = observation.currentSeatWind,
             roundRotationStatus = observation.roundRotationStatus,
             discards = observation.discards,
-            lastAction = observation.lastAction  // Keep as Discard
+            lastAction = observation.lastAction,  // Keep as Discard
+            yakuConfiguration = observation.yakuConfiguration
         )
         
         StepResult(newObservation, observation.currentSeatWind, false, emptyList())

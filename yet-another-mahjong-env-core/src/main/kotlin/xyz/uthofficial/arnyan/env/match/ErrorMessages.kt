@@ -22,6 +22,7 @@ object ErrorMessages {
     const val NO_SEQUENCE_POSSIBLE = "No sequence possible"
     const val NO_MATCHING_TILES_FOR_PON = "No matching tiles for pon"
     const val HAND_NOT_COMPLETE = "Hand not complete"
+    const val HAND_HAS_NO_YAKU = "Hand has no yaku"
     const val CHII_ONLY_BY_KAMICHA = "Chii can only be called by left neighbor (kamicha)"
     
     // Draw/tsumo errors

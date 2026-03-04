@@ -14,7 +14,7 @@ class StandardYakuConfiguration : YakuConfiguration {
         yakuHanMap[yaku] = currentHan
     }
 
-    fun evaluate(context: YakuContext, partitions: List<LongArray>): List<Pair<Yaku<LongArray>, Int>> {
+    override fun evaluate(context: YakuContext, partitions: List<LongArray>): List<Pair<Yaku<LongArray>, Int>> {
         val results = mutableListOf<Pair<Yaku<LongArray>, Int>>()
         for ((yaku, hanValue) in yakuHanMap) {
             // We need to check if yaku is applicable for any partition

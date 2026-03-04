@@ -509,15 +509,15 @@ class MatchTest : FunSpec({
         // Simple hand: four groups of three identical tiles (Man1, Man2, Pin1, Pin2)
         // We'll give south player 3 of each, and east will discard the 4th
         southPlayer.closeHand.clear()
-        // Add 3 Man1, 3 Man2, 3 Pin1, 3 Pin2 (total 12 tiles)
-        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createMan(1)) }
+        // Add 3 Man2, 3 Man3, 3 Pin4, 3 Pin5 (total 12 tiles, all non-yaochuhai for Tanyao yaku)
         repeat(3) { southPlayer.closeHand.add(TestTileFactory.createMan(2)) }
-        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createPin(1)) }
-        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createPin(2)) }
+        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createMan(3)) }
+        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createPin(4)) }
+        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createPin(5)) }
 
-        // East discards Pin2 (which completes south's hand with a 4th Pin2)
+        // East discards Pin5 (which completes south's hand with a 4th Pin5)
         eastPlayer.closeHand.clear()
-        val winningTile = TestTileFactory.createPin(2)
+        val winningTile = TestTileFactory.createPin(5)
         eastPlayer.closeHand.add(winningTile)
         match.submitDiscard(eastPlayer, winningTile).shouldBeSuccess()
 
@@ -618,21 +618,21 @@ class MatchTest : FunSpec({
         val southPlayer = getPlayerBySeat(players, SOUTH)
         val westPlayer = getPlayerBySeat(players, WEST)
         
-        // Setup: South has winning hand (needs one more Man1)
+        // Setup: South has winning hand (needs one more Man2)
         southPlayer.closeHand.clear()
-        // Give south 3 Man1, 3 Man2, 3 Pin1, 3 Pin2 (total 12 tiles)
-        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createMan(1)) }
+        // Give south 3 Man2, 3 Man3, 3 Pin4, 3 Pin5 (total 12 tiles, all non-yaochuhai for Tanyao yaku)
         repeat(3) { southPlayer.closeHand.add(TestTileFactory.createMan(2)) }
-        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createPin(1)) }
-        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createPin(2)) }
+        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createMan(3)) }
+        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createPin(4)) }
+        repeat(3) { southPlayer.closeHand.add(TestTileFactory.createPin(5)) }
         
-        // West has two Man1 tiles for Pon
+        // West has two Man2 tiles for Pon
         westPlayer.closeHand.clear()
-        westPlayer.closeHand.addAll(listOf(TestTileFactory.createMan(1), TestTileFactory.createMan(1)))
+        westPlayer.closeHand.addAll(listOf(TestTileFactory.createMan(2), TestTileFactory.createMan(2)))
         
-        // East discards Man1 (winning tile for south, also pon tile for west)
+        // East discards Man2 (winning tile for south, also pon tile for west)
         eastPlayer.closeHand.clear()
-        val winningTile = TestTileFactory.createMan(1)
+        val winningTile = TestTileFactory.createMan(2)
         eastPlayer.closeHand.add(winningTile)
         match.submitDiscard(eastPlayer, winningTile).shouldBeSuccess()
         

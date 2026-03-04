@@ -44,6 +44,7 @@ class Match private constructor(
 
             val topology = ruleSet.playerWindRotationOrderRule.build().bind()
             val roundWindCycle = ruleSet.roundWindRotationRule.build().bind()
+            val yakuConfiguration = ruleSet.yakuRule.build()
 
             if (shuffleWinds)
                 playerList.assignSeatRandomly(topology)
@@ -57,7 +58,8 @@ class Match private constructor(
                 wall = wall,
                 topology = topology,
                 currentSeatWind = currentSeatWind,
-                roundRotationStatus = roundWindCycle.startRoundRotationStatus
+                roundRotationStatus = roundWindCycle.startRoundRotationStatus,
+                yakuConfiguration = yakuConfiguration
             )
             val match = Match(listeners, state)
 

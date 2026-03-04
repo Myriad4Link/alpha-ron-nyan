@@ -6,6 +6,7 @@ import xyz.uthofficial.arnyan.env.tile.TileWall
 import xyz.uthofficial.arnyan.env.wind.RoundRotationStatus
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind
+import xyz.uthofficial.arnyan.env.yaku.YakuConfiguration
 
 internal data class MatchState(
     val players: List<Player>,
@@ -13,6 +14,7 @@ internal data class MatchState(
     val topology: TableTopology,
     var currentSeatWind: Wind,
     var roundRotationStatus: RoundRotationStatus,
+    val yakuConfiguration: YakuConfiguration,
     val discards: MutableMap<Wind, MutableList<Tile>> = mutableMapOf(),
     var lastAction: LastAction = LastAction.None,
     val availableActionsMaskPerPlayer: MutableMap<Wind, Int> = mutableMapOf(),

@@ -2,5 +2,5 @@ package xyz.uthofficial.arnyan.env.yaku
 
 interface Yaku<MentsusType> {
     val name: String
-    fun judge(mentsus: MentsusType): IntArray
+    fun judge(mentsus: MentsusType, context: YakuContext? = null): IntArray
 }

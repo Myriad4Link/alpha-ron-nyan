@@ -19,6 +19,7 @@ import xyz.uthofficial.arnyan.env.wind.SanmaStandardTableTopology
 import xyz.uthofficial.arnyan.env.wind.StandardRoundWindCycle
 import xyz.uthofficial.arnyan.env.wind.StandardWind
 import xyz.uthofficial.arnyan.env.wind.Wind as SeatWind
+import xyz.uthofficial.arnyan.env.yaku.StandardYakuRule
 import xyz.uthofficial.arnyan.env.yaku.resolver.Mentsu
 import java.util.*
 
@@ -213,7 +214,8 @@ fun createSimpleRuleSet(tiles: List<Tile> = TestTileFactory.create40Wall()): Rul
             // Simple round wind cycle: just EAST 1 round
             val cycle = StandardRoundWindCycle.fromMap(mapOf(StandardWind.EAST to 1)).getOrThrow()
             Result.Success(cycle)
-        }
+        },
+        yakuRule = StandardYakuRule
     )
 }
 

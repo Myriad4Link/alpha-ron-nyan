@@ -4,4 +4,7 @@ interface ReadOnlyTileWall {
     val standardDealAmount: Int
     val tileWall: List<Tile>
     val size: Int
+    
+    val doraIndicators: List<Tile>
+    val deadWallRemaining: Int
 }

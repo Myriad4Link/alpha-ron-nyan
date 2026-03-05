@@ -7,6 +7,7 @@ import xyz.uthofficial.arnyan.env.match.StateChange
 import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.Wind
+import xyz.uthofficial.arnyan.env.yaku.DoraCalculator
 import xyz.uthofficial.arnyan.env.yaku.WinningMethod
 import xyz.uthofficial.arnyan.env.yaku.YakuContext
 import xyz.uthofficial.arnyan.env.yaku.resolver.CompactMentsu
@@ -223,7 +224,12 @@ internal fun computeScoringStateChanges(
     )
     
     val nukiHan = actor.nukiCount
-    val totalHan = han + nukiHan
+    val doraCount = DoraCalculator.countDora(
+        hand = actor.closeHand + subject,
+        doraIndicators = observation.doraIndicators,
+        includeAka = true
+    )
+    val totalHan = han + nukiHan + doraCount
     
     val isDealer = actor.seat == observation.roundRotationStatus.place
     val basicPoints = observation.scoringCalculator.calculateBasicPoints(

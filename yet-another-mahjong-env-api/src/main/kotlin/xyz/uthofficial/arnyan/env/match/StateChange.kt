@@ -12,4 +12,5 @@ sealed class StateChange {
     data class UpdateRiichiSticks(val delta: Int) : StateChange()
     data class UpdateHonbaSticks(val delta: Int) : StateChange()
     data class DrawReplacementTile(val seat: Wind) : StateChange()
+    data class RevealDoraIndicator(val tile: Tile) : StateChange()
 }

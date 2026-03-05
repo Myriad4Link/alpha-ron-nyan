@@ -358,7 +358,8 @@ internal fun MatchObservation.toState(): MatchState = MatchState(
     furitenPlayers = furitenPlayers.toMutableSet(),
     temporaryFuritenPlayers = temporaryFuritenPlayers.toMutableSet(),
     riichiSticks = riichiSticks,
-    honbaSticks = honbaSticks
+    honbaSticks = honbaSticks,
+    doraIndicators = doraIndicators.toMutableList()
 )
 
 // Extension to convert MatchState to MatchObservation for testing
@@ -375,5 +376,6 @@ internal fun MatchState.toObservation(): MatchObservation = MatchObservation(
     riichiSticks = riichiSticks,
     honbaSticks = honbaSticks,
     furitenPlayers = furitenPlayers.toSet(),
-    temporaryFuritenPlayers = temporaryFuritenPlayers.toSet()
+    temporaryFuritenPlayers = temporaryFuritenPlayers.toSet(),
+    doraIndicators = doraIndicators.toList()
 )

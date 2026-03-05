@@ -149,6 +149,10 @@ internal class TurnProgression(
                         targetPlayer.closeHand.add(replacementResult.value.first())
                     }
                 }
+                
+                is StateChange.RevealDoraIndicator -> {
+                    state.doraIndicators.add(change.tile)
+                }
             }
         }
 
@@ -177,7 +181,19 @@ internal class TurnProgression(
 
             xyz.uthofficial.arnyan.env.match.actions.AnKan,
             xyz.uthofficial.arnyan.env.match.actions.MinKan,
-            xyz.uthofficial.arnyan.env.match.actions.KaKan,
+            xyz.uthofficial.arnyan.env.match.actions.KaKan -> {
+                state.passedPlayers.clear()
+                val playerSeat = player.seat
+                if (playerSeat != null) {
+                    state.temporaryFuritenPlayers.remove(playerSeat)
+                }
+                
+                val newDoraIndicator = state.wall.revealNextDoraIndicator()
+                if (newDoraIndicator is xyz.uthofficial.arnyan.env.result.Result.Success) {
+                    state.doraIndicators.add(newDoraIndicator.value)
+                }
+            }
+            
             xyz.uthofficial.arnyan.env.match.actions.NukiPei -> {
                 state.passedPlayers.clear()
                 val playerSeat = player.seat

@@ -234,6 +234,28 @@ fun createSimpleRuleSet(tiles: List<Tile> = TestTileFactory.create40Wall()): Rul
     )
 }
 
+// Create a 4-player rule set for testing
+fun createFourPlayerRuleSet(tiles: List<Tile> = TestTileFactory.create40Wall() + TestTileFactory.create40Wall()): RuleSet {
+    return RuleSet(
+        wallGenerationRule = {
+            val wall = StandardTileWall(standardDealAmount = STANDARD_DEAL_AMOUNT)
+            wall.addAll(tiles)
+            Result.Success(wall)
+        },
+        playerWindRotationOrderRule = {
+            val topology = CyclicTableTopology(
+                seats = listOf(StandardWind.EAST, StandardWind.SOUTH, StandardWind.WEST, StandardWind.NORTH)
+            )
+            Result.Success(topology)
+        },
+        roundWindRotationRule = {
+            val cycle = StandardRoundWindCycle.fromMap(mapOf(StandardWind.EAST to 1)).getOrThrow()
+            Result.Success(cycle)
+        },
+        yakuRule = StandardYakuRule
+    )
+}
+
 // Match builder for fluent test setup
 class MatchBuilder {
     private var players: List<DummyPlayer> = emptyList()

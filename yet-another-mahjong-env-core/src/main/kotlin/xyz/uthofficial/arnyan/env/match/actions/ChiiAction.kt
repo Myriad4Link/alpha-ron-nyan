@@ -20,6 +20,8 @@ object Chii : Action {
     override fun toString() = "CHII"
 
     override fun availableWhen(observation: MatchObservation, actor: Player, subject: Tile): Boolean {
+        if (observation.topology.seats.size != 4) return false
+
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Discard) return false
         if (lastAction.tile != subject) return false

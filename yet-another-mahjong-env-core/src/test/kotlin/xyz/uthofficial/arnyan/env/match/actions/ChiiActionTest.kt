@@ -13,6 +13,7 @@ import xyz.uthofficial.arnyan.env.match.DummyPlayer
 import xyz.uthofficial.arnyan.env.match.LastAction
 import xyz.uthofficial.arnyan.env.match.MatchBuilder
 import xyz.uthofficial.arnyan.env.match.TestTileFactory
+import xyz.uthofficial.arnyan.env.match.createFourPlayerRuleSet
 import xyz.uthofficial.arnyan.env.match.getPlayerBySeat
 import xyz.uthofficial.arnyan.env.match.shouldBeSuccess
 import xyz.uthofficial.arnyan.env.match.toState
@@ -21,6 +22,7 @@ import xyz.uthofficial.arnyan.env.tile.Man
 import xyz.uthofficial.arnyan.env.tile.Pin
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind.EAST
+import xyz.uthofficial.arnyan.env.wind.StandardWind.NORTH
 import xyz.uthofficial.arnyan.env.wind.StandardWind.SOUTH
 import xyz.uthofficial.arnyan.env.wind.StandardWind.WEST
 
@@ -150,22 +152,23 @@ class ChiiActionTest : FunSpec({
         }
 
         test("should return true for valid chii") {
-            val players = List(3) { DummyPlayer() }
-            val wallTiles = TestTileFactory.create40Wall()
-            val match = MatchBuilder().withWallTiles(wallTiles).withCustomPlayers(*players.toTypedArray()).build()
+            val players = List(4) { DummyPlayer() }
+            val wallTiles = TestTileFactory.create40Wall() + TestTileFactory.create40Wall()
+            val ruleSet = createFourPlayerRuleSet(wallTiles)
+            val match = MatchBuilder().withRuleSet(ruleSet).withCustomPlayers(*players.toTypedArray()).build()
             match.start().shouldBeSuccess()
 
             val eastPlayer = getPlayerBySeat(players, EAST)
-            val westPlayer = getPlayerBySeat(players, WEST)
+            val northPlayer = getPlayerBySeat(players, NORTH)
 
-            westPlayer.closeHand.clear()
-            westPlayer.closeHand.addAll(listOf(Tile(Man, 1, false), Tile(Man, 3, false)))
+            northPlayer.closeHand.clear()
+            northPlayer.closeHand.addAll(listOf(Tile(Man, 1, false), Tile(Man, 3, false)))
 
             eastPlayer.closeHand.clear()
             eastPlayer.closeHand.add(Tile(Man, 2, false))
             match.submitDiscard(eastPlayer, Tile(Man, 2, false)).shouldBeSuccess()
 
-            Chii.availableWhen(match.observation, westPlayer, Tile(Man, 2, false)) shouldBe true
+            Chii.availableWhen(match.observation, northPlayer, Tile(Man, 2, false)) shouldBe true
         }
     }
 

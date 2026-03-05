@@ -32,7 +32,7 @@ data class RuleSet(
             wallGenerationRule = {
                 (TileSetConfiguration()
                     .setGroup {
-                        allOf(Sou and Pin and Wind and Dragon) + (listOf(1, 9) of Man)
+                        allOf(Sou and Pin and Dragon) + (listOf(1, 9) of Man) + (listOf(1, 2, 3) of Wind)
                     } repeatFor 4 whereEvery { Sou and Pin } has 1 redDoraOn 5)
                     .build()
             },

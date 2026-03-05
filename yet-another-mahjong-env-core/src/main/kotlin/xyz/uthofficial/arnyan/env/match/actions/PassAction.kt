@@ -7,13 +7,16 @@ import xyz.uthofficial.arnyan.env.match.Action
 import xyz.uthofficial.arnyan.env.match.ErrorMessages
 import xyz.uthofficial.arnyan.env.match.LastAction
 import xyz.uthofficial.arnyan.env.match.MatchObservation
+import xyz.uthofficial.arnyan.env.match.MatchState
 import xyz.uthofficial.arnyan.env.match.StepResult
+import xyz.uthofficial.arnyan.env.match.toState
 import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
 import xyz.uthofficial.arnyan.env.wind.Wind
+import xyz.uthofficial.arnyan.env.yaku.WinningMethod
 
 object PassAction : Action {
     override val id = Action.ID_PASS
@@ -62,6 +65,16 @@ object PassAction : Action {
                 ).bind()
             }
 
+            val state = observation.toState()
+            
+            if (canWin(observation, actor, subject, WinningMethod.RON)) {
+                if (actor.isRiichiDeclared) {
+                    state.furitenPlayers.add(seatWind)
+                } else {
+                    state.temporaryFuritenPlayers.add(seatWind)
+                }
+            }
+
             val newObservation = MatchObservation(
                 players = observation.players,
                 wall = observation.wall,
@@ -73,7 +86,9 @@ object PassAction : Action {
                 yakuConfiguration = observation.yakuConfiguration,
                 scoringCalculator = observation.scoringCalculator,
                 riichiSticks = observation.riichiSticks,
-                honbaSticks = observation.honbaSticks
+                honbaSticks = observation.honbaSticks,
+                furitenPlayers = state.furitenPlayers.toSet(),
+                temporaryFuritenPlayers = state.temporaryFuritenPlayers.toSet()
             )
 
             StepResult(newObservation, observation.currentSeatWind, false, emptyList())

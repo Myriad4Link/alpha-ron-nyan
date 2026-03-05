@@ -355,6 +355,8 @@ internal fun MatchObservation.toState(): MatchState = MatchState(
     lastAction = lastAction,
     yakuConfiguration = yakuConfiguration,
     scoringCalculator = scoringCalculator,
+    furitenPlayers = furitenPlayers.toMutableSet(),
+    temporaryFuritenPlayers = temporaryFuritenPlayers.toMutableSet(),
     riichiSticks = riichiSticks,
     honbaSticks = honbaSticks
 )
@@ -371,5 +373,7 @@ internal fun MatchState.toObservation(): MatchObservation = MatchObservation(
     yakuConfiguration = yakuConfiguration,
     scoringCalculator = scoringCalculator,
     riichiSticks = riichiSticks,
-    honbaSticks = honbaSticks
+    honbaSticks = honbaSticks,
+    furitenPlayers = furitenPlayers.toSet(),
+    temporaryFuritenPlayers = temporaryFuritenPlayers.toSet()
 )

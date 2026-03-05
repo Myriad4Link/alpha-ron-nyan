@@ -29,6 +29,15 @@ object Ron : Action {
 
         if (lastAction.player == actor) return false
 
+        val actorSeat = actor.seat ?: return false
+        
+        if (actorSeat in observation.furitenPlayers) return false
+        
+        if (actorSeat in observation.temporaryFuritenPlayers) return false
+
+        val actorDiscards = observation.discards[actorSeat] ?: emptyList()
+        if (subject in actorDiscards) return false
+
         return canWin(observation, actor, subject, WinningMethod.RON)
     }
 

@@ -19,6 +19,12 @@ internal class TurnProgression(
         val currentPlayer = state.players.getPlayerSitAt(state.currentSeatWind)
         currentPlayer.closeHand.add(drawnTile)
         state.lastAction = LastAction.Draw(drawnTile, currentPlayer)
+        
+        val currentPlayerSeat = currentPlayer.seat
+        if (currentPlayerSeat != null) {
+            state.temporaryFuritenPlayers.remove(currentPlayerSeat)
+        }
+        
         actionMaskBuilder.updateAvailableActions(state)
         val currentState = state.toObservation()
         StepResult(currentState, state.topology.getShimocha(state.currentSeatWind).wrapActionError().bind(), false)
@@ -165,12 +171,19 @@ internal class TurnProgression(
             }
 
             xyz.uthofficial.arnyan.env.match.actions.Chii, 
-            xyz.uthofficial.arnyan.env.match.actions.Pon,
+            xyz.uthofficial.arnyan.env.match.actions.Pon -> {
+                state.passedPlayers.clear()
+            }
+
             xyz.uthofficial.arnyan.env.match.actions.AnKan,
             xyz.uthofficial.arnyan.env.match.actions.MinKan,
             xyz.uthofficial.arnyan.env.match.actions.KaKan,
             xyz.uthofficial.arnyan.env.match.actions.NukiPei -> {
                 state.passedPlayers.clear()
+                val playerSeat = player.seat
+                if (playerSeat != null) {
+                    state.temporaryFuritenPlayers.remove(playerSeat)
+                }
             }
 
             else -> {
@@ -190,6 +203,11 @@ internal class TurnProgression(
     fun handlePostDiscardTurnAdvancement(state: MatchState): StepResult {
         return when (val drawResult = drawTile(state)) {
             is Result.Success -> {
+                val currentPlayer = state.players.getPlayerSitAt(state.currentSeatWind)
+                val currentPlayerSeat = currentPlayer.seat
+                if (currentPlayerSeat != null) {
+                    state.temporaryFuritenPlayers.remove(currentPlayerSeat)
+                }
                 actionMaskBuilder.updateAvailableActions(state)
                 StepResult(state.toObservation(), state.currentSeatWind, false)
             }

@@ -21,6 +21,8 @@ internal data class MatchState(
     var lastAction: LastAction = LastAction.None,
     val availableActionsMaskPerPlayer: MutableMap<Wind, Int> = mutableMapOf(),
     val passedPlayers: MutableSet<Wind> = mutableSetOf(),
+    val furitenPlayers: MutableSet<Wind> = mutableSetOf(),
+    val temporaryFuritenPlayers: MutableSet<Wind> = mutableSetOf(),
     var riichiSticks: Int = 0,
     var honbaSticks: Int = 0
 ) {
@@ -42,6 +44,8 @@ internal data class MatchState(
         yakuConfiguration = yakuConfiguration,
         scoringCalculator = scoringCalculator,
         riichiSticks = riichiSticks,
-        honbaSticks = honbaSticks
+        honbaSticks = honbaSticks,
+        furitenPlayers = furitenPlayers.toSet(),
+        temporaryFuritenPlayers = temporaryFuritenPlayers.toSet()
     )
 }

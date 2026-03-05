@@ -86,6 +86,8 @@ class Match private constructor(
         }
         state.lastAction = LastAction.None
         state.passedPlayers.clear()
+        state.furitenPlayers.clear()
+        state.temporaryFuritenPlayers.clear()
         state.availableActionsMaskPerPlayer.clear()
         state.topology.seats.forEach {
             state.availableActionsMaskPerPlayer[it] = 0

@@ -74,5 +74,7 @@ data class MatchObservation(
     val yakuConfiguration: YakuConfiguration = EmptyYakuConfiguration,
     val scoringCalculator: ScoringCalculator = EmptyScoringCalculator,
     val riichiSticks: Int = 0,
-    val honbaSticks: Int = 0
+    val honbaSticks: Int = 0,
+    val furitenPlayers: Set<Wind> = emptySet(),
+    val temporaryFuritenPlayers: Set<Wind> = emptySet()
 )

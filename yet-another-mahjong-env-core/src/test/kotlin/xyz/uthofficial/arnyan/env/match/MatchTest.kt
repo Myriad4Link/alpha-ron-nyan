@@ -17,6 +17,13 @@ import xyz.uthofficial.arnyan.env.tile.Sou
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
 import xyz.uthofficial.arnyan.env.wind.StandardWind.*
+import xyz.uthofficial.arnyan.env.match.actions.Chii
+import xyz.uthofficial.arnyan.env.match.actions.DiscardAction
+import xyz.uthofficial.arnyan.env.match.actions.PassAction
+import xyz.uthofficial.arnyan.env.match.actions.Pon
+import xyz.uthofficial.arnyan.env.match.actions.RiichiAction
+import xyz.uthofficial.arnyan.env.match.actions.Ron
+import xyz.uthofficial.arnyan.env.match.actions.TsuMo
 
 class MatchTest : FunSpec({
 
@@ -427,6 +434,18 @@ class MatchTest : FunSpec({
                 is StateChange.RemoveTileFromDiscards -> {
                     // Test doesn't have mutable discards map; verification is done via observation
                 }
+
+                is StateChange.UpdatePlayerScore -> {
+                    // Not relevant for this test
+                }
+
+                is StateChange.UpdateRiichiSticks -> {
+                    // Not relevant for this test
+                }
+
+                is StateChange.UpdateHonbaSticks -> {
+                    // Not relevant for this test
+                }
             }
         }
         // Verify tiles removed from west's close hand
@@ -485,6 +504,18 @@ class MatchTest : FunSpec({
 
                 is StateChange.RemoveTileFromDiscards -> {
                     // Test doesn't have mutable discards map; verification is done via observation
+                }
+
+                is StateChange.UpdatePlayerScore -> {
+                    // Not relevant for this test
+                }
+
+                is StateChange.UpdateRiichiSticks -> {
+                    // Not relevant for this test
+                }
+
+                is StateChange.UpdateHonbaSticks -> {
+                    // Not relevant for this test
                 }
             }
         }

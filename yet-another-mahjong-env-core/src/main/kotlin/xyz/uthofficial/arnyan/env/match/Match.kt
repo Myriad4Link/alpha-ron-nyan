@@ -8,6 +8,7 @@ import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.TableTopology
+import xyz.uthofficial.arnyan.env.match.actions.DiscardAction
 
 class Match private constructor(
     private val listeners: List<MatchListener>,
@@ -50,6 +51,7 @@ class Match private constructor(
             val topology = ruleSet.playerWindRotationOrderRule.build().bind()
             val roundWindCycle = ruleSet.roundWindRotationRule.build().bind()
             val yakuConfiguration = ruleSet.yakuRule.build()
+            val scoringCalculator = ruleSet.scoringRule.build()
 
             if (playerList.size != topology.seats.size) {
                 Result.Failure(
@@ -73,7 +75,8 @@ class Match private constructor(
                 topology = topology,
                 currentSeatWind = currentSeatWind,
                 roundRotationStatus = roundWindCycle.startRoundRotationStatus,
-                yakuConfiguration = yakuConfiguration
+                yakuConfiguration = yakuConfiguration,
+                scoringCalculator = scoringCalculator
             )
             val match = Match(listeners, state)
 

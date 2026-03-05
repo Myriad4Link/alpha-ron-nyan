@@ -222,9 +222,12 @@ internal fun computeScoringStateChanges(
         isDealer = actor.seat == observation.roundRotationStatus.place
     )
     
+    val nukiHan = actor.nukiCount
+    val totalHan = han + nukiHan
+    
     val isDealer = actor.seat == observation.roundRotationStatus.place
     val basicPoints = observation.scoringCalculator.calculateBasicPoints(
-        han = han,
+        han = totalHan,
         fu = fu,
         isDealer = isDealer,
         isTsumo = winningMethod == WinningMethod.TSUMO
@@ -283,7 +286,8 @@ internal fun canWin(observation: MatchObservation, actor: Player, subject: Tile,
         val totalHan = yakuList.sumOf { it.second }
         if (totalHan > maxHan) maxHan = totalHan
     }
-    return maxHan > 0
+    val nukiHan = actor.nukiCount
+    return (maxHan + nukiHan) > 0
 }
 
 internal fun isInTenpai(closeHand: List<Tile>, discardTile: Tile): Boolean {

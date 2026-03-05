@@ -28,11 +28,11 @@ data class RuleSet(
     val scoringRule: ScoringRule = StandardScoringRule
 ) {
     companion object {
-        val RIICHI_SANMA_TENHOU = RuleSet(
+        val RIICHI_SANMA_ARI_ARI = RuleSet(
             wallGenerationRule = {
                 (TileSetConfiguration()
                     .setGroup {
-                        allOf(Sou and Pin and Dragon) + (listOf(1, 9) of Man) + (listOf(1, 2, 3) of Wind)
+                        allOf(Sou and Pin and Dragon) + (listOf(1, 9) of Man) + (listOf(1, 2, 3, 4) of Wind)
                     } repeatFor 4 whereEvery { Sou and Pin } has 1 redDoraOn 5)
                     .build()
             },

@@ -12,6 +12,7 @@ interface ReadOnlyPlayer {
     val currentMentsusComposition: List<List<Mentsu>>
     val seat: Wind?
     val score: Int
+    val nukiCount: Int
 }
 
 infix fun <T : ReadOnlyPlayer> List<T>.getPlayerSitAt(wind: Wind): T = first { it.seat == wind }

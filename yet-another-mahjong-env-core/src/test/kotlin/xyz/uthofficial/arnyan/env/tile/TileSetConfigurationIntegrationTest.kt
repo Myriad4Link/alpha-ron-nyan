@@ -24,7 +24,8 @@ private data class DummyPlayer(
     override var seat: Wind? = null,
     override var score: Int = 0,
     override var isRiichiDeclared: Boolean = false,
-    override var riichiSticksDeposited: Int = 0
+    override var riichiSticksDeposited: Int = 0,
+    override var nukiCount: Int = 0
 ) : Player
 
 class TileSetConfigurationIntegrationTest : FunSpec({

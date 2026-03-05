@@ -23,5 +23,6 @@ interface Action {
         const val ID_ANKAN = 1 shl 7
         const val ID_MINKAN = 1 shl 8
         const val ID_KAKAN = 1 shl 9
+        const val ID_NUKI = 1 shl 10
     }
 }

@@ -9,7 +9,6 @@ import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
-import xyz.uthofficial.arnyan.env.wind.Wind
 
 internal class TurnProgression(
     private val actionMaskBuilder: ActionMaskBuilder,
@@ -136,6 +135,14 @@ internal class TurnProgression(
                 is StateChange.UpdateHonbaSticks -> {
                     state.honbaSticks += change.delta
                 }
+
+                is StateChange.DrawReplacementTile -> {
+                    val targetPlayer = state.players.getPlayerSitAt(change.seat)
+                    val replacementResult = state.wall.draw(1)
+                    if (replacementResult is xyz.uthofficial.arnyan.env.result.Result.Success) {
+                        targetPlayer.closeHand.add(replacementResult.value.first())
+                    }
+                }
             }
         }
 
@@ -159,9 +166,10 @@ internal class TurnProgression(
 
             xyz.uthofficial.arnyan.env.match.actions.Chii, 
             xyz.uthofficial.arnyan.env.match.actions.Pon,
-            xyz.uthofficial.arnyan.env.match.actions.Ankan,
-            xyz.uthofficial.arnyan.env.match.actions.Minkan,
-            xyz.uthofficial.arnyan.env.match.actions.Kakan -> {
+            xyz.uthofficial.arnyan.env.match.actions.AnKan,
+            xyz.uthofficial.arnyan.env.match.actions.MinKan,
+            xyz.uthofficial.arnyan.env.match.actions.KaKan,
+            xyz.uthofficial.arnyan.env.match.actions.NukiPei -> {
                 state.passedPlayers.clear()
             }
 

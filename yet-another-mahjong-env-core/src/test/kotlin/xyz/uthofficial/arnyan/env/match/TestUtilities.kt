@@ -26,7 +26,8 @@ data class DummyPlayer(
     override var seat: SeatWind? = null,
     override var score: Int = 0,
     override var isRiichiDeclared: Boolean = false,
-    override var riichiSticksDeposited: Int = 0
+    override var riichiSticksDeposited: Int = 0,
+    override var nukiCount: Int = 0
 ) : Player
 
 // Constants for simplified test wall
@@ -40,6 +41,9 @@ object TestTileFactory {
     fun createMan(value: Int, isAka: Boolean = false): Tile = Tile(Man, value, isAka)
     fun createPin(value: Int, isAka: Boolean = false): Tile = Tile(Pin, value, isAka)
     fun createSou(value: Int, isAka: Boolean = false): Tile = Tile(Sou, value, isAka)
+    fun createWind(value: Int, isAka: Boolean = false): Tile = Tile(Wind, value, isAka)
+    fun createDragon(value: Int, isAka: Boolean = false): Tile = Tile(Dragon, value, isAka)
+    fun createNorthWind(): Tile = Tile(Wind, 4, false)
 
     // Create a simple hand of identical tiles for testing
     fun createHandOfSameTile(tileType: TileType, value: Int, count: Int): List<Tile> {

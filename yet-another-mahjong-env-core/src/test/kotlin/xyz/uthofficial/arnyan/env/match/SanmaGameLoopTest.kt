@@ -16,7 +16,7 @@ class SanmaGameLoopTest : FunSpec({
     test("sanma game should complete a full round with tsumo win") {
         val players = List(3) { DummyPlayer() }
         val wallTiles = TestTileFactory.create40Wall() + TestTileFactory.create40Wall()
-        val ruleSet = RuleSet.RIICHI_SANMA_TENHOU
+        val ruleSet = RuleSet.RIICHI_SANMA_ARI_ARI
         val match = MatchBuilder()
             .withRuleSet(ruleSet)
             .withWallTiles(wallTiles)
@@ -86,7 +86,7 @@ class SanmaGameLoopTest : FunSpec({
     test("sanma round end should update honba counter") {
         val players = List(3) { DummyPlayer() }
         val wallTiles = TestTileFactory.create40Wall() + TestTileFactory.create40Wall()
-        val ruleSet = RuleSet.RIICHI_SANMA_TENHOU
+        val ruleSet = RuleSet.RIICHI_SANMA_ARI_ARI
         val match = MatchBuilder()
             .withRuleSet(ruleSet)
             .withWallTiles(wallTiles)
@@ -106,7 +106,7 @@ class SanmaGameLoopTest : FunSpec({
     test("sanma dealer rotation should work on non-dealer win") {
         val players = List(3) { DummyPlayer() }
         val wallTiles = TestTileFactory.create40Wall() + TestTileFactory.create40Wall()
-        val ruleSet = RuleSet.RIICHI_SANMA_TENHOU
+        val ruleSet = RuleSet.RIICHI_SANMA_ARI_ARI
         val match = MatchBuilder()
             .withRuleSet(ruleSet)
             .withWallTiles(wallTiles)

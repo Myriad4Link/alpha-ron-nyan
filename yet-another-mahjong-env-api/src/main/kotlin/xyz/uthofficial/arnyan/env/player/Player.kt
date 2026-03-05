@@ -13,4 +13,5 @@ interface Player : ReadOnlyPlayer {
     
     var isRiichiDeclared: Boolean
     var riichiSticksDeposited: Int
+    override var nukiCount: Int
 }

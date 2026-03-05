@@ -23,6 +23,7 @@
             <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/yet-another-mahjong-env-api" />
             <option value="$PROJECT_DIR$/yet-another-mahjong-env-core" />
+            <option value="$PROJECT_DIR$/yet-another-mahjong-env-demo" />
             <option value="$PROJECT_DIR$/yet-another-mahjong-env-utils" />
           </set>
         </option>

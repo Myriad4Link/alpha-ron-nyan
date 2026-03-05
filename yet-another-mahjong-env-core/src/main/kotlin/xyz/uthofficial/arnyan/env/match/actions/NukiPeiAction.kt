@@ -15,9 +15,9 @@ import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
 
-object AnKan : Action {
-    override val id = Action.ID_ANKAN
-    override fun toString() = "AN_KAN"
+object NukiPei : Action {
+    override val id = Action.ID_NUKI
+    override fun toString() = "NUKI_PEI"
 
     override fun availableWhen(observation: MatchObservation, actor: Player, subject: Tile): Boolean {
         if (actor.seat != observation.currentSeatWind) return false
@@ -25,8 +25,12 @@ object AnKan : Action {
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Draw) return false
         
-        val matchingTiles = findFourIdenticalTiles(actor.closeHand, subject)
-        return matchingTiles != null
+        val hasNorthTile = actor.closeHand.any { it.tileType is xyz.uthofficial.arnyan.env.tile.Wind && it.value == 4 }
+        if (!hasNorthTile) return false
+        
+        if (observation.wall.size == 0) return false
+        
+        return true
     }
 
     override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
@@ -42,24 +46,26 @@ object AnKan : Action {
                     MatchError.ActionNotAvailable(
                         toString(),
                         actorSeat,
-                        "Ankan can only be performed after drawing a tile"
+                        "Nuki-Pei can only be performed after drawing a tile"
                     ).wrapActionError()
                 ).bind()
             }
 
-            val fourTiles = findFourIdenticalTiles(actor.closeHand, subject)
+            val northTile = actor.closeHand.find { it.tileType is xyz.uthofficial.arnyan.env.tile.Wind && it.value == 4 }
                 ?: Result.Failure<ActionError>(
                     MatchError.ActionNotAvailable(
                         toString(),
                         actorSeat,
-                        "No four identical tiles for ankan"
+                        "No North wind tile in hand"
                     ).wrapActionError()
                 ).bind()
 
-            val openGroup = fourTiles.sortedBy { it.index() }
+            actor.nukiCount++
+
             val stateChanges = listOf(
-                StateChange.RemoveTilesFromHand(actorSeat, fourTiles),
-                StateChange.AddOpenGroup(actorSeat, openGroup)
+                StateChange.RemoveTilesFromHand(actorSeat, listOf(northTile)),
+                StateChange.AddOpenGroup(actorSeat, listOf(northTile)),
+                StateChange.DrawReplacementTile(actorSeat)
             )
 
             val newObservation = MatchObservation(
@@ -69,7 +75,7 @@ object AnKan : Action {
                 currentSeatWind = actorSeat,
                 roundRotationStatus = observation.roundRotationStatus,
                 discards = observation.discards,
-                lastAction = LastAction.AnKan(subject, actor),
+                lastAction = LastAction.AnKan(northTile, actor),
                 yakuConfiguration = observation.yakuConfiguration,
                 scoringCalculator = observation.scoringCalculator,
                 riichiSticks = observation.riichiSticks,
@@ -78,14 +84,4 @@ object AnKan : Action {
 
             StepResult(newObservation, actorSeat, false, stateChanges)
         }
-}
-
-internal fun findFourIdenticalTiles(hand: List<Tile>, subject: Tile): List<Tile>? {
-    val subjectIdx = subject.index()
-    val matchingTiles = hand.filter { it.index() == subjectIdx }
-    return if (matchingTiles.size >= 3) {
-        matchingTiles.take(3) + subject
-    } else {
-        null
-    }
 }

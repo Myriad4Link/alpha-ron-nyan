@@ -5,14 +5,13 @@ import xyz.uthofficial.arnyan.env.error.MatchError
 import xyz.uthofficial.arnyan.env.error.wrapActionError
 import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.result.Result
-import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
 import xyz.uthofficial.arnyan.env.player.getPlayerSitAt
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind
 import xyz.uthofficial.arnyan.env.match.actions.Chii
-import xyz.uthofficial.arnyan.env.match.actions.Minkan
+import xyz.uthofficial.arnyan.env.match.actions.MinKan
 import xyz.uthofficial.arnyan.env.match.actions.Pon
 import xyz.uthofficial.arnyan.env.match.actions.Ron
 
@@ -62,7 +61,7 @@ internal class ActionValidator {
         if (Chii.availableWhen(obs, player, subject)) mask = mask or Action.ID_CHII
         if (Pon.availableWhen(obs, player, subject)) mask = mask or Action.ID_PON
         if (Ron.availableWhen(obs, player, subject)) mask = mask or Action.ID_RON
-        if (Minkan.availableWhen(obs, player, subject)) mask = mask or Action.ID_MINKAN
+        if (MinKan.availableWhen(obs, player, subject)) mask = mask or Action.ID_MINKAN
         return mask
     }
 

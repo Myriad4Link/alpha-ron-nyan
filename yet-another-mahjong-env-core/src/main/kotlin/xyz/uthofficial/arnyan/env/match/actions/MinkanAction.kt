@@ -15,9 +15,9 @@ import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
 
-object Minkan : Action {
+object MinKan : Action {
     override val id = Action.ID_MINKAN
-    override fun toString() = "MINKAN"
+    override fun toString() = "MIN_KAN"
 
     override fun availableWhen(observation: MatchObservation, actor: Player, subject: Tile): Boolean {
         val lastAction = observation.lastAction
@@ -102,7 +102,7 @@ object Minkan : Action {
                 currentSeatWind = actorSeat,
                 roundRotationStatus = observation.roundRotationStatus,
                 discards = currentDiscards,
-                lastAction = LastAction.Minkan(subject, actor),
+                lastAction = LastAction.MinKan(subject, actor),
                 yakuConfiguration = observation.yakuConfiguration,
                 scoringCalculator = observation.scoringCalculator,
                 riichiSticks = observation.riichiSticks,

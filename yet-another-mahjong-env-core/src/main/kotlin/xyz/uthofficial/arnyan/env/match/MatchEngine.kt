@@ -6,11 +6,12 @@ import xyz.uthofficial.arnyan.env.error.wrapActionError
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.tile.Tile
-import xyz.uthofficial.arnyan.env.match.actions.Ankan
+import xyz.uthofficial.arnyan.env.match.actions.AnKan
 import xyz.uthofficial.arnyan.env.match.actions.Chii
 import xyz.uthofficial.arnyan.env.match.actions.DiscardAction
-import xyz.uthofficial.arnyan.env.match.actions.Kakan
-import xyz.uthofficial.arnyan.env.match.actions.Minkan
+import xyz.uthofficial.arnyan.env.match.actions.KaKan
+import xyz.uthofficial.arnyan.env.match.actions.MinKan
+import xyz.uthofficial.arnyan.env.match.actions.NukiPei
 import xyz.uthofficial.arnyan.env.match.actions.PassAction
 import xyz.uthofficial.arnyan.env.match.actions.Pon
 import xyz.uthofficial.arnyan.env.match.actions.RiichiAction
@@ -19,7 +20,7 @@ import xyz.uthofficial.arnyan.env.match.actions.TsuMo
 
 internal class MatchEngine(
     private val allActions: List<Action> = listOf(
-        Chii, Pon, Ron, TsuMo, DiscardAction, PassAction, RiichiAction, Ankan, Minkan, Kakan
+        Chii, Pon, Ron, TsuMo, DiscardAction, PassAction, RiichiAction, AnKan, MinKan, KaKan, NukiPei
     )
 ) {
     private val validator = ActionValidator()

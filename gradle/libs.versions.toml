@@ -19,20 +19,24 @@ kotlin = "2.3.0"
 kotlinxDatetime = "0.7.1"
 kotlinxSerializationJSON = "1.9.0"
 kotlinxCoroutines = "1.10.2"
-dagger = "2.59"
+dagger = "2.59.2"
 slf4jApi = "2.0.17"
 ##    ⬆ = "2.1.0-alpha0"
 ##    ⬆ = "2.1.0-alpha1"
-logbackClassic = "1.5.26"
-kotest = "6.1.2"
+logbackClassic = "1.5.32"
+kotest = "6.1.4"
 
-ksp = "2.3.5"
+ksp = "2.3.6"
 kotlinPoet = "2.2.0"
 autoService = "1.1.1"
 autoServiceKsp = "1.2.0"
 kotlinCompileTesting = "0.12.1"
 
-kover = "0.9.4"
+kover = "0.9.7"
+
+djlApi = "0.34.0"
+pyTorchNative = "2.3.1"
+pyTorchJni = "2.7.1-0.34.0"
 
 [libraries]
 
@@ -47,6 +51,11 @@ dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
 kotestRunner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotestAssertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotestProperties = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+
+djlApi = { module = "ai.djl:api", version.ref = "djlApi" }
+djlPyTorch = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "djlApi" }
+djlPyTorchJni = { module = "ai.djl.pytorch:pytorch-jni", version.ref = "pyTorchJni" }
+djlPyTorchNativeCpu = { module = "ai.djl.pytorch:pytorch-native-cpu", version.ref = "pyTorchNative" }
 
 symbolProcessingApi = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kotlinPoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }

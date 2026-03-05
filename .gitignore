@@ -48,3 +48,6 @@ bin/
 
 ### Windows ###
 nul
+
+### Utils ###
+extract.py

@@ -107,6 +107,13 @@ internal class TurnProgression(
                     targetPlayer.openHand.add(change.group)
                 }
 
+                is StateChange.RemoveOpenGroup -> {
+                    val targetPlayer = state.players.getPlayerSitAt(change.seat)
+                    if (change.groupIndex in targetPlayer.openHand.indices) {
+                        targetPlayer.openHand.removeAt(change.groupIndex)
+                    }
+                }
+
                 is StateChange.RemoveTileFromDiscards -> {
                     val playerDiscards = state.discards[change.seat]
                     if (playerDiscards != null) {
@@ -150,7 +157,11 @@ internal class TurnProgression(
                 state.passedPlayers.clear()
             }
 
-            xyz.uthofficial.arnyan.env.match.actions.Chii, xyz.uthofficial.arnyan.env.match.actions.Pon -> {
+            xyz.uthofficial.arnyan.env.match.actions.Chii, 
+            xyz.uthofficial.arnyan.env.match.actions.Pon,
+            xyz.uthofficial.arnyan.env.match.actions.Ankan,
+            xyz.uthofficial.arnyan.env.match.actions.Minkan,
+            xyz.uthofficial.arnyan.env.match.actions.Kakan -> {
                 state.passedPlayers.clear()
             }
 

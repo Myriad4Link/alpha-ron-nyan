@@ -12,6 +12,7 @@ import xyz.uthofficial.arnyan.env.player.getPlayerSitAt
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind
 import xyz.uthofficial.arnyan.env.match.actions.Chii
+import xyz.uthofficial.arnyan.env.match.actions.Minkan
 import xyz.uthofficial.arnyan.env.match.actions.Pon
 import xyz.uthofficial.arnyan.env.match.actions.Ron
 
@@ -61,6 +62,7 @@ internal class ActionValidator {
         if (Chii.availableWhen(obs, player, subject)) mask = mask or Action.ID_CHII
         if (Pon.availableWhen(obs, player, subject)) mask = mask or Action.ID_PON
         if (Ron.availableWhen(obs, player, subject)) mask = mask or Action.ID_RON
+        if (Minkan.availableWhen(obs, player, subject)) mask = mask or Action.ID_MINKAN
         return mask
     }
 
@@ -117,6 +119,22 @@ internal class ActionValidator {
             }
         }
         
+        var kanAssigned = false
+        for (seat in priorityOrder) {
+            val mask = result[seat] ?: 0
+            if (mask and Action.ID_MINKAN != 0) {
+                if (kanAssigned) {
+                    result[seat] = mask and Action.ID_MINKAN.inv()
+                } else {
+                    if ((mask and Action.ID_RON) == 0) {
+                        kanAssigned = true
+                    } else {
+                        result[seat] = mask and Action.ID_MINKAN.inv()
+                    }
+                }
+            }
+        }
+        
         var ponAssigned = false
         for (seat in priorityOrder) {
             val mask = result[seat] ?: 0
@@ -124,7 +142,7 @@ internal class ActionValidator {
                 if (ponAssigned) {
                     result[seat] = mask and Action.ID_PON.inv()
                 } else {
-                    if (mask and Action.ID_RON == 0) {
+                    if ((mask and Action.ID_RON) == 0 && (mask and Action.ID_MINKAN) == 0) {
                         ponAssigned = true
                     } else {
                         result[seat] = mask and Action.ID_PON.inv()

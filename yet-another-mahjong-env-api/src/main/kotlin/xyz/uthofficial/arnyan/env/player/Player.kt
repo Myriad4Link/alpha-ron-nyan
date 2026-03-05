@@ -9,4 +9,8 @@ interface Player : ReadOnlyPlayer {
     override val openHand: MutableList<List<Tile>>
     override val currentMentsusComposition: MutableList<List<Mentsu>>
     override var seat: Wind?
+    override var score: Int
+    
+    var isRiichiDeclared: Boolean
+    var riichiSticksDeposited: Int
 }

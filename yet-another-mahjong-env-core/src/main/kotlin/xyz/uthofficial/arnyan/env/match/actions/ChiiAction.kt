@@ -65,7 +65,10 @@ object Chii : Action {
             }
 
             val discardingPlayer = lastAction.player
-            val discardingSeat = discardingPlayer.seat ?: StandardWind.EAST
+            val discardingSeat = discardingPlayer.seat ?: Result.Failure<ActionError>(
+                MatchError.ActionNotAvailable(toString(), StandardWind.EAST, ErrorMessages.PLAYER_HAS_NO_SEAT)
+                    .wrapActionError()
+            ).bind()
             if (discardingPlayer == actor) {
                 Result.Failure<ActionError>(
                     MatchError.ActionNotAvailable(

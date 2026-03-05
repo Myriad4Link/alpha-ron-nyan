@@ -82,6 +82,7 @@ internal fun findMatchingTiles(hand: List<Tile>, subject: Tile): Pair<Tile, Tile
 
 internal fun isCompleteHand(closeHand: List<Tile>, subject: Tile? = null): Boolean {
     val hand = if (subject != null) closeHand + subject else closeHand
+    if (hand.size != 14) return false
     val histogram = IntArray(TileTypeRegistry.SIZE)
     TileTypeRegistry.getHistogram(hand, histogram)
     val resolver = StandardFastTileResolver(
@@ -110,12 +111,14 @@ internal fun resolvePartitions(closeHand: List<Tile>, subject: Tile? = null): Li
 internal fun computeMaxHan(
     yakuConfiguration: xyz.uthofficial.arnyan.env.yaku.YakuConfiguration,
     context: YakuContext,
-    partitions: List<LongArray>
+    partitions: List<LongArray>,
+    openMentsus: LongArray = longArrayOf()
 ): Int {
     if (partitions.isEmpty()) return 0
     var maxHan = 0
     for (partition in partitions) {
-        val yakuList = yakuConfiguration.evaluate(context, listOf(partition))
+        val fullPartition = partition + openMentsus
+        val yakuList = yakuConfiguration.evaluate(context, listOf(fullPartition))
         val totalHan = yakuList.sumOf { it.second }
         if (totalHan > maxHan) maxHan = totalHan
     }
@@ -271,26 +274,53 @@ internal fun canWin(observation: MatchObservation, actor: Player, subject: Tile,
         winningTile = subject,
         winningMethod = winningMethod
     )
-    val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
+    val openMentsus = actor.openHand.map { tileGroupToMentsu(it, isOpen = true) }
+        .map { it.raw }.toLongArray()
+    var maxHan = 0
+    for (partition in partitions) {
+        val fullPartition = partition + openMentsus
+        val yakuList = observation.yakuConfiguration.evaluate(context, listOf(fullPartition))
+        val totalHan = yakuList.sumOf { it.second }
+        if (totalHan > maxHan) maxHan = totalHan
+    }
     return maxHan > 0
 }
 
-internal fun isInTenpai(closeHand: List<Tile>, drawnTile: Tile): Boolean {
-    val fullHand = closeHand + drawnTile
-    val histogram = IntArray(TileTypeRegistry.SIZE)
-    TileTypeRegistry.getHistogram(fullHand, histogram)
-    
-    val evaluator = StandardFastTenpaiEvaluator(
-        StandardFastTileResolver(
-            StandardShuntsuStrategy,
-            StandardKoutsuStrategy,
-            StandardKantsuStrategy,
-            StandardToitsuStrategy
+internal fun isInTenpai(closeHand: List<Tile>, discardTile: Tile): Boolean {
+    if (closeHand.size == 13) {
+        val histogram = IntArray(TileTypeRegistry.SIZE)
+        TileTypeRegistry.getHistogram(closeHand, histogram)
+        
+        val evaluator = StandardFastTenpaiEvaluator(
+            StandardFastTileResolver(
+                StandardShuntsuStrategy,
+                StandardKoutsuStrategy,
+                StandardKantsuStrategy,
+                StandardToitsuStrategy
+            )
         )
-    )
-    
-    val tenpaiResult = evaluator.evaluate(histogram)
-    return tenpaiResult.isNotEmpty()
+        
+        val tenpaiResult = evaluator.evaluate(histogram)
+        return tenpaiResult.isNotEmpty()
+    } else {
+        val histogram = IntArray(TileTypeRegistry.SIZE)
+        TileTypeRegistry.getHistogram(closeHand, histogram)
+        val segment = TileTypeRegistry.getSegment(discardTile.tileType)
+        val index = discardTile.value + segment[0] - 1
+        histogram[index]--
+        
+        val evaluator = StandardFastTenpaiEvaluator(
+            StandardFastTileResolver(
+                StandardShuntsuStrategy,
+                StandardKoutsuStrategy,
+                StandardKantsuStrategy,
+                StandardToitsuStrategy
+            )
+        )
+        
+        val tenpaiResult = evaluator.evaluate(histogram)
+        return tenpaiResult.isNotEmpty()
+    }
 }
 
 internal fun getTenpaiWaitingTiles(closeHand: List<Tile>): List<Int> {

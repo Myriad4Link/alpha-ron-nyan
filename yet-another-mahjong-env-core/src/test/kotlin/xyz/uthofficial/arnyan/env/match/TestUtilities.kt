@@ -23,7 +23,10 @@ data class DummyPlayer(
     override val closeHand: MutableList<Tile> = mutableListOf(),
     override val openHand: MutableList<List<Tile>> = mutableListOf(),
     override val currentMentsusComposition: MutableList<List<Mentsu>> = mutableListOf(),
-    override var seat: SeatWind? = null
+    override var seat: SeatWind? = null,
+    override var score: Int = 0,
+    override var isRiichiDeclared: Boolean = false,
+    override var riichiSticksDeposited: Int = 0
 ) : Player
 
 // Constants for simplified test wall
@@ -194,6 +197,18 @@ fun Tile.toHumanString(): String {
 fun List<Tile>.toHumanString(): String = this.sortedWith(compareBy({ it.tileType::class.simpleName }, { it.value }))
     .joinToString(", ") { it.toHumanString() }
 
+// Player lookup utility
+fun List<DummyPlayer>.getPlayerSitAt(seat: xyz.uthofficial.arnyan.env.wind.Wind): DummyPlayer =
+    this.find { it.seat == seat } ?: error("No player found at seat $seat")
+
+fun getPlayerBySeat(players: List<DummyPlayer>, seat: StandardWind): DummyPlayer =
+    players.find { it.seat == seat } ?: error("No player found at seat $seat")
+
+// Create a simple yaku configuration for testing with basic yaku rules
+fun createSimpleYakuConfiguration(): xyz.uthofficial.arnyan.env.yaku.YakuConfiguration {
+    return xyz.uthofficial.arnyan.env.yaku.StandardYakuRule.build()
+}
+
 // Create a simple rule set for testing using existing DSL
 fun createSimpleRuleSet(tiles: List<Tile> = TestTileFactory.create40Wall()): RuleSet {
     return RuleSet(
@@ -302,3 +317,33 @@ fun <T> Result<T, ActionError>.shouldBeFailureWithNotPlayersTurn() {
     actionError.shouldBeInstanceOf<ActionError.Match>()
     (actionError as ActionError.Match).error.shouldBeInstanceOf<MatchError.NotPlayersTurn>()
 }
+
+// Extension to convert MatchObservation to MatchState for testing
+internal fun MatchObservation.toState(): MatchState = MatchState(
+    players = players.map { it as Player },
+    wall = wall as TileWall,
+    topology = topology,
+    currentSeatWind = currentSeatWind,
+    roundRotationStatus = roundRotationStatus,
+    discards = discards.mapValues { (_, list) -> list.toMutableList() }.toMutableMap(),
+    lastAction = lastAction,
+    yakuConfiguration = yakuConfiguration,
+    scoringCalculator = scoringCalculator,
+    riichiSticks = riichiSticks,
+    honbaSticks = honbaSticks
+)
+
+// Extension to convert MatchState to MatchObservation for testing
+internal fun MatchState.toObservation(): MatchObservation = MatchObservation(
+    players = players,
+    wall = wall,
+    topology = topology,
+    currentSeatWind = currentSeatWind,
+    roundRotationStatus = roundRotationStatus,
+    discards = discards.mapValues { (_, list) -> list.toList() },
+    lastAction = lastAction,
+    yakuConfiguration = yakuConfiguration,
+    scoringCalculator = scoringCalculator,
+    riichiSticks = riichiSticks,
+    honbaSticks = honbaSticks
+)

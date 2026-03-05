@@ -21,9 +21,6 @@ class StandardYakuConfiguration : YakuConfiguration {
             for (partition in partitions) {
                 val judgeResult = yaku.judge(partition, context)
                 if (judgeResult.isNotEmpty()) {
-                    // For yaku that can have multiple counts (e.g., Yakuhai), judge returns array of han per occurrence
-                    // We'll sum them and multiply by base han? Actually base han is already the han per occurrence.
-                    // For simplicity, we'll just add base han for each occurrence.
                     val totalHan = judgeResult.sum() * hanValue
                     results.add(yaku to totalHan)
                     break

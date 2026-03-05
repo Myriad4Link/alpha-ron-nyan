@@ -29,6 +29,12 @@ object ErrorMessages {
     const val NO_DRAW_TO_TSUMO = "No draw to tsumo"
     const val ONLY_DRAWING_PLAYER_CAN_TSUMO = "Only the drawing player can call tsumo"
 
+    // Riichi errors
+    const val NOT_IN_TENPAI = "Hand is not in tenpai"
+    const val HAND_NOT_CLOSED = "Hand must be closed to declare riichi"
+    const val INSUFFICIENT_POINTS = "Insufficient points to declare riichi"
+    const val RIICHI_ALREADY_DECLARED = "Riichi already declared"
+
     // Helper functions to format messages with action names
     fun noDiscardToAction(action: String): String = NO_DISCARD_TO_ACTION.format(action.lowercase())
     fun cannotActionOwnDiscard(action: String): String = CANNOT_ACTION_OWN_DISCARD.format(action.lowercase())

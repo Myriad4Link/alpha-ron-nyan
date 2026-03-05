@@ -14,22 +14,19 @@ import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
-import xyz.uthofficial.arnyan.env.wind.Wind
-import xyz.uthofficial.arnyan.env.yaku.WinningMethod
-import xyz.uthofficial.arnyan.env.yaku.YakuContext
 
-object Ron : Action {
-    override val id = Action.ID_RON
-    override fun toString() = "RON"
+object Minkan : Action {
+    override val id = Action.ID_MINKAN
+    override fun toString() = "MINKAN"
 
     override fun availableWhen(observation: MatchObservation, actor: Player, subject: Tile): Boolean {
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Discard) return false
         if (lastAction.tile != subject) return false
-
         if (lastAction.player == actor) return false
 
-        return canWin(observation, actor, subject, WinningMethod.RON)
+        val matchingTiles = findThreeIdenticalTiles(actor.closeHand, subject)
+        return matchingTiles != null
     }
 
     override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
@@ -45,7 +42,7 @@ object Ron : Action {
                     MatchError.ActionNotAvailable(
                         toString(),
                         actorSeat,
-                        ErrorMessages.noDiscardToAction("ron")
+                        ErrorMessages.noDiscardToAction("minkan")
                     ).wrapActionError()
                 ).bind()
             }
@@ -69,45 +66,26 @@ object Ron : Action {
                     MatchError.ActionNotAvailable(
                         toString(),
                         actorSeat,
-                        ErrorMessages.cannotActionOwnDiscard("ron")
+                        ErrorMessages.cannotActionOwnDiscard("minkan")
                     ).wrapActionError()
                 ).bind()
             }
 
-            val partitions = resolvePartitions(actor.closeHand, subject)
-            if (partitions.isEmpty()) {
-                Result.Failure<ActionError>(
+            val threeTiles = findThreeIdenticalTiles(actor.closeHand, subject)
+                ?: Result.Failure<ActionError>(
                     MatchError.ActionNotAvailable(
                         toString(),
                         actorSeat,
-                        ErrorMessages.HAND_NOT_COMPLETE
+                        "No three identical tiles for minkan"
                     ).wrapActionError()
                 ).bind()
-            }
-            val openMentsus = actor.openHand.map { tileGroupToMentsu(it, isOpen = true) }
-                .map { it.raw }.toLongArray()
-            val seatWind = actor.seat ?: StandardWind.EAST
-            val roundWind = observation.roundRotationStatus.place
-            val isOpenHand = actor.openHand.isNotEmpty()
-            val isRiichiDeclared = actor.isRiichiDeclared
-            val context = YakuContext(
-                seatWind = seatWind,
-                roundWind = roundWind,
-                isOpenHand = isOpenHand,
-                isRiichiDeclared = isRiichiDeclared,
-                winningTile = subject,
-                winningMethod = WinningMethod.RON
+
+            val openGroup = (threeTiles + subject).sortedBy { it.index() }
+            val stateChanges = listOf(
+                StateChange.RemoveTilesFromHand(actorSeat, threeTiles),
+                StateChange.AddOpenGroup(actorSeat, openGroup),
+                StateChange.RemoveTileFromDiscards(discardingSeat, subject)
             )
-            val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions, openMentsus)
-            if (maxHan == 0) {
-                Result.Failure<ActionError>(
-                    MatchError.ActionNotAvailable(
-                        toString(),
-                        actorSeat,
-                        ErrorMessages.HAND_HAS_NO_YAKU
-                    ).wrapActionError()
-                ).bind()
-            }
 
             val currentDiscards = observation.discards.toMutableMap()
             val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()
@@ -117,18 +95,6 @@ object Ron : Action {
             }
             currentDiscards[discardingSeat] = playerDiscards
 
-            val scoringChanges = computeScoringStateChanges(
-                observation = observation,
-                actor = actor,
-                subject = subject,
-                winningMethod = WinningMethod.RON,
-                partitions = partitions,
-                discardingSeat = discardingSeat
-            )
-            val stateChanges = listOf(
-                StateChange.RemoveTileFromDiscards(discardingSeat, subject)
-            ) + scoringChanges
-
             val newObservation = MatchObservation(
                 players = observation.players,
                 wall = observation.wall,
@@ -136,13 +102,23 @@ object Ron : Action {
                 currentSeatWind = actorSeat,
                 roundRotationStatus = observation.roundRotationStatus,
                 discards = currentDiscards,
-                lastAction = LastAction.Ron(subject, actor),
+                lastAction = LastAction.Minkan(subject, actor),
                 yakuConfiguration = observation.yakuConfiguration,
                 scoringCalculator = observation.scoringCalculator,
                 riichiSticks = observation.riichiSticks,
                 honbaSticks = observation.honbaSticks
             )
 
-            StepResult(newObservation, actorSeat, true, stateChanges)
+            StepResult(newObservation, actorSeat, false, stateChanges)
         }
+}
+
+internal fun findThreeIdenticalTiles(hand: List<Tile>, subject: Tile): List<Tile>? {
+    val subjectIdx = subject.index()
+    val matchingTiles = hand.filter { it.index() == subjectIdx }
+    return if (matchingTiles.size >= 3) {
+        matchingTiles.take(3)
+    } else {
+        null
+    }
 }

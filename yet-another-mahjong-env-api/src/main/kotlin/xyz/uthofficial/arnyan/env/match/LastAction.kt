@@ -12,4 +12,8 @@ sealed class LastAction {
     data class Ron(val tile: Tile, val player: Player) : LastAction()
     data class TsuMo(val tile: Tile, val player: Player) : LastAction()
     data class Pass(val tile: Tile, val player: Player) : LastAction()
+    data class Riichi(val tile: Tile, val player: Player) : LastAction()
+    data class Ankan(val tile: Tile, val player: Player) : LastAction()
+    data class Minkan(val tile: Tile, val player: Player) : LastAction()
+    data class Kakan(val tile: Tile, val player: Player) : LastAction()
 }

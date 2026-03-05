@@ -77,6 +77,8 @@ object TsuMo : Action {
                     ).wrapActionError()
                 ).bind()
             }
+            val openMentsus = actor.openHand.map { tileGroupToMentsu(it, isOpen = true) }
+                .map { it.raw }.toLongArray()
             val seatWind = actor.seat ?: StandardWind.EAST
             val roundWind = observation.roundRotationStatus.place
             val isOpenHand = actor.openHand.isNotEmpty()
@@ -89,7 +91,7 @@ object TsuMo : Action {
                 winningTile = subject,
                 winningMethod = WinningMethod.TSUMO
             )
-            val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions)
+            val maxHan = computeMaxHan(observation.yakuConfiguration, context, partitions, openMentsus)
             if (maxHan == 0) {
                 Result.Failure<ActionError>(
                     MatchError.ActionNotAvailable(

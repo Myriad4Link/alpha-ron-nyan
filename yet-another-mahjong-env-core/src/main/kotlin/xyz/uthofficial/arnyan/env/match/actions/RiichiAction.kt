@@ -23,14 +23,15 @@ object RiichiAction : Action {
         val lastAction = observation.lastAction
         if (lastAction !is LastAction.Draw) return false
         if (lastAction.player != actor) return false
-        if (lastAction.tile != subject) return false
 
         if (actor.seat != observation.currentSeatWind) return false
         if (actor.openHand.isNotEmpty()) return false
         if (actor.isRiichiDeclared) return false
         if (actor.score < 1000) return false
 
-        return isInTenpai(actor.closeHand, subject)
+        return actor.closeHand.any { discardCandidate ->
+            isInTenpai(actor.closeHand, discardCandidate)
+        }
     }
 
     override fun perform(observation: MatchObservation, actor: Player, subject: Tile): Result<StepResult, ActionError> =
@@ -55,7 +56,16 @@ object RiichiAction : Action {
                     MatchError.ActionNotAvailable(
                         toString(),
                         actorSeat,
-                        "Can only declare riichi on own draw"
+                        ErrorMessages.ONLY_DRAWING_PLAYER_CAN_TSUMO
+                    ).wrapActionError()
+                ).bind()
+            }
+            if (!actor.closeHand.contains(subject)) {
+                Result.Failure<ActionError>(
+                    MatchError.ActionNotAvailable(
+                        toString(),
+                        actorSeat,
+                        ErrorMessages.TILE_NOT_IN_HAND
                     ).wrapActionError()
                 ).bind()
             }
@@ -87,7 +97,7 @@ object RiichiAction : Action {
                 ).bind()
             }
 
-            val tenpaiWaitingTiles = getTenpaiWaitingTiles(actor.closeHand)
+            val tenpaiWaitingTiles = getTenpaiWaitingTiles(actor.closeHand - subject)
             if (tenpaiWaitingTiles.isEmpty()) {
                 Result.Failure<ActionError>(
                     MatchError.ActionNotAvailable(

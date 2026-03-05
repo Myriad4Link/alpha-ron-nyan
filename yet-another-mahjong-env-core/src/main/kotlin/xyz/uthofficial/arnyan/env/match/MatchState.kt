@@ -7,6 +7,7 @@ import xyz.uthofficial.arnyan.env.wind.RoundRotationStatus
 import xyz.uthofficial.arnyan.env.wind.TableTopology
 import xyz.uthofficial.arnyan.env.wind.Wind
 import xyz.uthofficial.arnyan.env.yaku.YakuConfiguration
+import xyz.uthofficial.arnyan.env.scoring.ScoringCalculator
 
 internal data class MatchState(
     val players: List<Player>,
@@ -15,10 +16,13 @@ internal data class MatchState(
     var currentSeatWind: Wind,
     var roundRotationStatus: RoundRotationStatus,
     val yakuConfiguration: YakuConfiguration,
+    val scoringCalculator: ScoringCalculator,
     val discards: MutableMap<Wind, MutableList<Tile>> = mutableMapOf(),
     var lastAction: LastAction = LastAction.None,
     val availableActionsMaskPerPlayer: MutableMap<Wind, Int> = mutableMapOf(),
-    val passedPlayers: MutableSet<Wind> = mutableSetOf()
+    val passedPlayers: MutableSet<Wind> = mutableSetOf(),
+    var riichiSticks: Int = 0,
+    var honbaSticks: Int = 0
 ) {
     init {
         topology.seats.forEach {
@@ -35,6 +39,9 @@ internal data class MatchState(
         roundRotationStatus = roundRotationStatus,
         discards = discards.mapValues { (_, list) -> list.toList() },
         lastAction = lastAction,
-        yakuConfiguration = yakuConfiguration
+        yakuConfiguration = yakuConfiguration,
+        scoringCalculator = scoringCalculator,
+        riichiSticks = riichiSticks,
+        honbaSticks = honbaSticks
     )
 }

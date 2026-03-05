@@ -4,6 +4,7 @@ import xyz.uthofficial.arnyan.env.ruleset.base.PlayerWindRotationRule
 import xyz.uthofficial.arnyan.env.ruleset.base.RoundWindRotationRule
 import xyz.uthofficial.arnyan.env.ruleset.base.WallGenerationRule
 import xyz.uthofficial.arnyan.env.ruleset.base.YakuRule
+import xyz.uthofficial.arnyan.env.ruleset.base.ScoringRule
 import xyz.uthofficial.arnyan.env.tile.*
 import xyz.uthofficial.arnyan.env.tile.dsl.allOf
 import xyz.uthofficial.arnyan.env.tile.dsl.and
@@ -12,6 +13,7 @@ import xyz.uthofficial.arnyan.env.wind.PlayerSeatWindRotationConfiguration
 import xyz.uthofficial.arnyan.env.wind.RoundWindRotationConfiguration
 import xyz.uthofficial.arnyan.env.wind.StandardWind.*
 import xyz.uthofficial.arnyan.env.yaku.StandardYakuRule
+import xyz.uthofficial.arnyan.env.scoring.StandardScoringRule
 
 data class RuleSet(
     val wallGenerationRule: WallGenerationRule,
@@ -22,7 +24,8 @@ data class RuleSet(
             SOUTH * 4
         }.build()
     },
-    val yakuRule: YakuRule = StandardYakuRule
+    val yakuRule: YakuRule = StandardYakuRule,
+    val scoringRule: ScoringRule = StandardScoringRule
 ) {
     companion object {
         val RIICHI_SANMA_TENHOU = RuleSet(
@@ -41,10 +44,10 @@ data class RuleSet(
             roundWindRotationRule = {
                 RoundWindRotationConfiguration().apply {
                     EAST * 4
-                    SOUTH * 4
                 }.build()
             },
-            yakuRule = StandardYakuRule
+            yakuRule = StandardYakuRule,
+            scoringRule = StandardScoringRule
         )
     }
 }

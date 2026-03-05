@@ -19,5 +19,9 @@ interface Action {
         const val ID_TSUMO = 1 shl 3
         const val ID_DISCARD = 1 shl 4
         const val ID_PASS = 1 shl 5
+        const val ID_RIICHI = 1 shl 6
+        const val ID_ANKAN = 1 shl 7
+        const val ID_MINKAN = 1 shl 8
+        const val ID_KAKAN = 1 shl 9
     }
 }

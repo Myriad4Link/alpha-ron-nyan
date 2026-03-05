@@ -7,8 +7,16 @@ import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.result.binding
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
 import xyz.uthofficial.arnyan.env.tile.Tile
+import xyz.uthofficial.arnyan.env.wind.RoundRotationStatus
 import xyz.uthofficial.arnyan.env.wind.TableTopology
+import xyz.uthofficial.arnyan.env.wind.Wind
 import xyz.uthofficial.arnyan.env.match.actions.DiscardAction
+
+data class RoundInfo(
+    val round: Int,
+    val honba: Int,
+    val dealerWind: Wind
+)
 
 class Match private constructor(
     private val listeners: List<MatchListener>,
@@ -29,7 +37,92 @@ class Match private constructor(
     fun submitDiscard(player: Player, tile: Tile): Result<StepResult, ActionError> =
         submitAction(player, DiscardAction, tile)
 
+    fun next(): Result<StepResult, ActionError> = binding {
+        engine.start(state).bind()
+    }
+
     fun checkOver(): Boolean = engine.checkOver(state)
+
+    fun isRoundOver(lastAction: LastAction): Boolean {
+        return lastAction is LastAction.Ron || lastAction is LastAction.TsuMo || state.wall.size == 0
+    }
+
+    fun endRound(winnerSeat: Wind? = null): Result<StepResult, ActionError> = binding {
+        val isDealerWin = winnerSeat == state.roundRotationStatus.place
+        val isExhaustive = state.wall.size == 0
+        
+        if (isExhaustive && winnerSeat == null) {
+            state.roundRotationStatus = state.roundRotationStatus.copy(
+                honba = state.roundRotationStatus.honba + 1
+            )
+            state.honbaSticks = state.roundRotationStatus.honba
+            
+            StepResult(state.toObservation(), state.currentSeatWind, true)
+        } else {
+            val shouldContinueDealer = isDealerWin || isExhaustive
+            
+            state.roundRotationStatus = if (shouldContinueDealer) {
+                state.roundRotationStatus.copy(honba = state.roundRotationStatus.honba + 1)
+            } else {
+                state.roundRotationStatus.copy(honba = 0)
+            }
+            
+            state.honbaSticks = state.roundRotationStatus.honba
+            state.riichiSticks = 0
+            
+            if (!shouldContinueDealer) {
+                val nextPlayerWind = state.topology.getShimocha(state.currentSeatWind).getOrThrow()
+                state.currentSeatWind = nextPlayerWind
+            }
+            
+            StepResult(state.toObservation(), state.currentSeatWind, false)
+        }
+    }
+
+    fun startNextRound(): Result<StepResult, ActionError> = binding {
+        state.discards.clear()
+        state.topology.seats.forEach {
+            state.discards[it] = mutableListOf()
+        }
+        state.lastAction = LastAction.None
+        state.passedPlayers.clear()
+        state.availableActionsMaskPerPlayer.clear()
+        state.topology.seats.forEach {
+            state.availableActionsMaskPerPlayer[it] = 0
+        }
+        
+        state.players.forEach { player ->
+            player.closeHand.clear()
+            player.openHand.clear()
+            player.currentMentsusComposition.clear()
+            player.isRiichiDeclared = false
+            player.riichiSticksDeposited = 0
+        }
+        
+        require(state.wall.size >= state.players.size * state.wall.standardDealAmount) {
+            "Not enough tiles in wall: ${state.wall.size} < ${state.players.size * state.wall.standardDealAmount}"
+        }
+        
+        (state.wall deal state.wall.standardDealAmount randomlyTo state.players)
+            .mapError { ActionError.Wall(it) }
+            .bind()
+        
+        engine.start(state).bind()
+    }
+
+    val isMatchOver: Boolean
+        get() {
+            val currentRound = state.roundRotationStatus.round
+            val totalRounds = 1
+            return currentRound >= totalRounds
+        }
+
+    val currentRoundInfo: RoundInfo
+        get() = RoundInfo(
+            round = state.roundRotationStatus.round,
+            honba = state.roundRotationStatus.honba,
+            dealerWind = state.roundRotationStatus.place
+        )
 
     val observation: MatchObservation
         get() = state.toObservation().copy(

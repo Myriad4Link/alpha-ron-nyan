@@ -1,7 +1,10 @@
 package xyz.uthofficial.arnyan.env.match
 
+import xyz.uthofficial.arnyan.env.match.actions.Ankan
 import xyz.uthofficial.arnyan.env.match.actions.Chii
 import xyz.uthofficial.arnyan.env.match.actions.DiscardAction
+import xyz.uthofficial.arnyan.env.match.actions.Kakan
+import xyz.uthofficial.arnyan.env.match.actions.Minkan
 import xyz.uthofficial.arnyan.env.match.actions.PassAction
 import xyz.uthofficial.arnyan.env.match.actions.Pon
 import xyz.uthofficial.arnyan.env.match.actions.RiichiAction
@@ -13,7 +16,7 @@ import xyz.uthofficial.arnyan.env.wind.Wind
 internal class ActionMaskBuilder(
     private val validator: ActionValidator,
     private val allActions: List<Action> = listOf(
-        Chii, Pon, Ron, TsuMo, DiscardAction, PassAction, RiichiAction
+        Chii, Pon, Ron, TsuMo, DiscardAction, PassAction, RiichiAction, Ankan, Minkan, Kakan
     )
 ) {
     fun maskToActions(mask: Int): List<Action> {
@@ -53,6 +56,7 @@ internal class ActionMaskBuilder(
                 if (Chii.availableWhen(obs, player, subject)) mask = mask or Action.ID_CHII
                 if (Pon.availableWhen(obs, player, subject)) mask = mask or Action.ID_PON
                 if (Ron.availableWhen(obs, player, subject)) mask = mask or Action.ID_RON
+                if (Minkan.availableWhen(obs, player, subject)) mask = mask or Action.ID_MINKAN
             }
             if (mask != 0) {
                 interruptAvailability[seat] = mask
@@ -86,13 +90,20 @@ internal class ActionMaskBuilder(
                 is LastAction.Draw -> (obs.lastAction as LastAction.Draw).tile
                 else -> null
             }
-            if (drawSubject != null && TsuMo.availableWhen(obs, player, drawSubject)) {
-                playerMask = playerMask or Action.ID_TSUMO
-            }
-
-            if (drawSubject != null && seat == state.currentSeatWind) {
-                if (RiichiAction.availableWhen(obs, player, drawSubject)) {
-                    playerMask = playerMask or Action.ID_RIICHI
+            if (drawSubject != null) {
+                if (TsuMo.availableWhen(obs, player, drawSubject)) {
+                    playerMask = playerMask or Action.ID_TSUMO
+                }
+                if (seat == state.currentSeatWind) {
+                    if (Ankan.availableWhen(obs, player, drawSubject)) {
+                        playerMask = playerMask or Action.ID_ANKAN
+                    }
+                    if (Kakan.availableWhen(obs, player, drawSubject)) {
+                        playerMask = playerMask or Action.ID_KAKAN
+                    }
+                    if (RiichiAction.availableWhen(obs, player, drawSubject)) {
+                        playerMask = playerMask or Action.ID_RIICHI
+                    }
                 }
             }
 

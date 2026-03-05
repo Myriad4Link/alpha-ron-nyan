@@ -3,13 +3,11 @@ package xyz.uthofficial.arnyan.env.match
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import xyz.uthofficial.arnyan.env.error.ActionError
 import xyz.uthofficial.arnyan.env.error.ConfigurationError
-import xyz.uthofficial.arnyan.env.player.getPlayerSitAt
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.tile.Man
 import xyz.uthofficial.arnyan.env.tile.Pin
@@ -17,9 +15,12 @@ import xyz.uthofficial.arnyan.env.tile.Sou
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
 import xyz.uthofficial.arnyan.env.wind.StandardWind.*
+import xyz.uthofficial.arnyan.env.match.actions.AnKan
 import xyz.uthofficial.arnyan.env.match.actions.Chii
 import xyz.uthofficial.arnyan.env.match.actions.DiscardAction
+import xyz.uthofficial.arnyan.env.match.actions.KaKan
 import xyz.uthofficial.arnyan.env.match.actions.Pon
+import xyz.uthofficial.arnyan.env.match.actions.RiichiAction
 import xyz.uthofficial.arnyan.env.match.actions.Ron
 import xyz.uthofficial.arnyan.env.match.actions.TsuMo
 
@@ -239,20 +240,28 @@ class MatchTest : FunSpec({
         match.observation.availableActions shouldContain DiscardAction
 
         val otherActions = match.observation.availableActions.filter { it != DiscardAction }
-        if (otherActions.isNotEmpty()) {
-            // The only other action allowed is TsuMo (when hand is complete)
-            otherActions shouldHaveSize 1
-            otherActions.first() shouldBe TsuMo
-            // Verify that hand is actually complete
-            val eastPlayer = getPlayerBySeat(players, EAST)
-            val lastAction = match.observation.lastAction as LastAction.Draw
-            TsuMo.availableWhen(match.observation, eastPlayer, lastAction.tile) shouldBe true
-        } else {
-            // Ensure hand is not complete (optional check)
-            val eastPlayer = getPlayerBySeat(players, EAST)
-            val lastAction = match.observation.lastAction as? LastAction.Draw
-            if (lastAction != null) {
-                TsuMo.availableWhen(match.observation, eastPlayer, lastAction.tile) shouldBe false
+        val eastPlayer = getPlayerBySeat(players, EAST)
+        val lastAction = match.observation.lastAction as LastAction.Draw
+        val drawnTile = lastAction.tile
+
+        // Valid post-draw actions for current player: TsuMo, Ankan, Kakan, RiichiAction
+        otherActions.forEach { action ->
+            when (action) {
+                TsuMo -> {
+                    TsuMo.availableWhen(match.observation, eastPlayer, drawnTile) shouldBe true
+                }
+                AnKan -> {
+                    AnKan.availableWhen(match.observation, eastPlayer, drawnTile) shouldBe true
+                }
+                KaKan -> {
+                    KaKan.availableWhen(match.observation, eastPlayer, drawnTile) shouldBe true
+                }
+                RiichiAction -> {
+                    RiichiAction.availableWhen(match.observation, eastPlayer, drawnTile) shouldBe true
+                }
+                else -> {
+                    throw AssertionError("Unexpected action after draw: $action")
+                }
             }
         }
     }

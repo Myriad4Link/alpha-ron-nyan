@@ -8,17 +8,8 @@ import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.player.ReadOnlyPlayer
 import xyz.uthofficial.arnyan.env.result.Result
 import xyz.uthofficial.arnyan.env.ruleset.RuleSet
-import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
-import xyz.uthofficial.arnyan.env.wind.CyclicTableTopology
 import xyz.uthofficial.arnyan.env.wind.StandardRoundWindCycle
-import xyz.uthofficial.arnyan.env.scoring.StandardScoringRule
-import xyz.uthofficial.arnyan.env.yaku.StandardYakuRule
-import xyz.uthofficial.arnyan.env.tile.StandardTileWall
-import xyz.uthofficial.arnyan.env.tile.dsl.allOf
-import xyz.uthofficial.arnyan.env.tile.dsl.and
-import xyz.uthofficial.arnyan.env.tile.dsl.of
-import xyz.uthofficial.arnyan.env.wind.Wind
 
 class GameLoop {
     companion object {
@@ -75,7 +66,7 @@ class GameLoop {
                 
                 listeners.forEach { it.onRoundStarted(match.value.observation) }
                 
-                val roundResult = playRound(match.value, humanPlayer, listeners)
+                val roundResult = playRound(match.value, humanPlayer)
                 
                 if (roundResult.shouldContinue) {
                     currentDealerIndex = roundResult.nextDealerIndex
@@ -106,7 +97,7 @@ class GameLoop {
             }
         }
         
-        private fun playRound(match: Match, humanPlayer: HumanPlayer, listeners: List<DemoMatchListener>): RoundResult {
+        private fun playRound(match: Match, humanPlayer: HumanPlayer): RoundResult {
             var turnCount = 0
             val maxTurns = 200
             
@@ -149,8 +140,7 @@ class GameLoop {
                         RandomBotPlayer.selectDiscardTile(currentPlayer as Player)
                     }
                 } else {
-                    val lastAction = observation.lastAction
-                    when (lastAction) {
+                    when (val lastAction = observation.lastAction) {
                         is LastAction.Discard -> lastAction.tile
                         is LastAction.Draw -> lastAction.tile
                         else -> {
@@ -159,16 +149,14 @@ class GameLoop {
                         }
                     }
                 }
-                
-                val result = match.submitAction(currentPlayer as Player, action, tile)
-                
-                when (result) {
+
+                when (val result = match.submitAction(currentPlayer as Player, action, tile)) {
                     is Result.Success -> {
-                        ConsoleDisplay.printInfo("→ ${currentPlayer.seat} (${if (isHumanTurn) "Human" else "Bot"}) performed ${action.toString()} with ${tile.toHumanString()}")
+                        ConsoleDisplay.printInfo("→ ${currentPlayer.seat} (${if (isHumanTurn) "Human" else "Bot"}) performed $action with ${tile.toHumanString()}")
                         
                         if (result.value.isOver) {
-                            handleRoundEnd(match, result.value, currentPlayer, action, listeners, humanPlayer)
-                            return determineNextRound(match, humanPlayer)
+                            handleRoundEnd(match, result.value, currentPlayer, action)
+                            return determineNextRound(match)
                         }
                         
                         turnCount++
@@ -188,14 +176,12 @@ class GameLoop {
             match: Match,
             stepResult: xyz.uthofficial.arnyan.env.match.StepResult,
             winner: Player,
-            winningAction: Action,
-            listeners: List<DemoMatchListener>,
-            humanPlayer: HumanPlayer
+            winningAction: Action
         ) {
             val isTsumo = winningAction == xyz.uthofficial.arnyan.env.match.actions.TsuMo
             val isExhaustive = match.observation.wall.size == 0
-            
-            val scoreChanges = stepResult.stateChanges
+
+            stepResult.stateChanges
                 .filterIsInstance<xyz.uthofficial.arnyan.env.match.StateChange.UpdatePlayerScore>()
                 .associate { it.seat to it.delta }
             
@@ -208,7 +194,7 @@ class GameLoop {
             )
         }
         
-        private fun determineNextRound(match: Match, humanPlayer: HumanPlayer): RoundResult {
+        private fun determineNextRound(match: Match): RoundResult {
             val currentDealer = match.observation.roundRotationStatus.place
             val currentRoundNum = match.observation.roundRotationStatus.round
             val isEastRound = currentDealer == StandardWind.EAST
@@ -240,8 +226,8 @@ class GameLoop {
             } else {
                 currentRoundNum
             }
-            
-            val maxRounds = if (isEastRound) EAST_ROUNDS else EAST_ROUNDS + SOUTH_ROUNDS
+
+            if (isEastRound) EAST_ROUNDS else EAST_ROUNDS + SOUTH_ROUNDS
             if (nextRound > (if (isEastRound) EAST_ROUNDS else SOUTH_ROUNDS)) {
                 if (isEastRound) {
                     ConsoleDisplay.printInfo("Moving to South rounds...")

@@ -44,7 +44,6 @@ object ConsoleDisplay {
         println()
         
         printWall(observation)
-        println()
         
         val currentPlayer = observation.players.find { it.seat == observation.currentSeatWind }
         println("Current turn: ${currentPlayer?.let { getPlayerType(it, humanPlayer) } ?: "Unknown"} (${observation.currentSeatWind})")
@@ -192,6 +191,45 @@ object ConsoleDisplay {
         
         val wallStr = tileGroups.joinToString(", ") { (tileName, count) -> "${count}x${tileName}" }
         println("  $wallStr")
+        println()
+        
+        // Print dead wall structure
+        printDeadWall(observation)
+    }
+    
+    private fun printDeadWall(observation: MatchObservation) {
+        println("Dead Wall (7 stacks x 2 tiles):")
+        println("  +---------------------------------------------------------+")
+        println("  | Stack:  0     1     2     3     4     5     6          |")
+        println("  |        +-----+-----+-----+-----+-----+-----+-----+    |")
+        println("  | Upper  |  ?  |  ?  |  ?  |  ?  |  ?  |  ?  |  ?  |    |")
+        println("  |        +-----+-----+-----+-----+-----+-----+-----+    |")
+        println("  | Lower  |  ?  |  ?  |  ?  |  ?  |  ?  |  ?  |  ?  |    |")
+        println("  |        +-----+-----+-----+-----+-----+-----+-----+    |")
+        println("  +---------------------------------------------------------+")
+        println("  Legend: Stack 2 = Initial dora position")
+        println("          Kan -> reveals upper tile on next stack")
+        println("          Riichi -> reveals lower tile on next stack")
+        println()
+        
+        // Show revealed dora indicators
+        println("Revealed Dora Indicators:")
+        if (observation.doraIndicators.isEmpty()) {
+            println("  (none revealed yet)")
+        } else {
+            observation.doraIndicators.forEachIndexed { index, tile ->
+                val position = when {
+                    index == 0 -> "Initial (Stack 2 upper)"
+                    else -> "Revealed #$index"
+                }
+                println("  [$index] ${tile.toHumanString()} - $position")
+            }
+        }
+    }
+    
+    private fun printDoraIndicators(observation: MatchObservation) {
+        // This is now handled by printDeadWall, but kept for compatibility
+        // println("Dora indicators: ${observation.doraIndicators.joinToString(" ") { it.toHumanString() }}")
     }
     
     private fun printDiscards(observation: MatchObservation) {

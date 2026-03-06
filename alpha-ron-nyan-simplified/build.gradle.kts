@@ -25,4 +25,5 @@ dependencies {
     api(libs.slf4jApi)
     testImplementation(libs.logbackClassic)
     testImplementation(libs.bundles.kotest)
+    testImplementation(project(":yet-another-mahjong-env-core"))
 }

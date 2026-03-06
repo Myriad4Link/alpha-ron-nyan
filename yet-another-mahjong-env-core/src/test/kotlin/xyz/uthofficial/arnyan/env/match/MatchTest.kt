@@ -506,4 +506,75 @@ class MatchTest : FunSpec({
         mismatch.playerCount shouldBe 4
         mismatch.seatCount shouldBe 3
     }
+
+    test("isRoundOver returns true when wall is empty") {
+        val players = List(3) { DummyPlayer() }
+        val wallTiles = TestTileFactory.create40Wall()
+        val match = MatchBuilder().withWallTiles(wallTiles).withCustomPlayers(*players.toTypedArray()).build()
+        match.start().shouldBeSuccess()
+        
+        match.isRoundOver(LastAction.Discard(TestTileFactory.createMan(1), players[0])) shouldBe true
+    }
+
+    test("endRound increments honba on exhaustive draw with no winner") {
+        val players = List(3) { DummyPlayer() }
+        val wallTiles = TestTileFactory.create40Wall()
+        val match = MatchBuilder().withWallTiles(wallTiles).withCustomPlayers(*players.toTypedArray()).build()
+        match.start().shouldBeSuccess()
+        
+        val result = match.endRound(winnerSeat = null)
+        result.shouldBeSuccess()
+        
+        match.observation.roundRotationStatus.honba shouldBe 1
+        match.observation.honbaSticks shouldBe 1
+    }
+
+    test("startNextRound fails when wall has insufficient tiles") {
+        val players = List(3) { DummyPlayer() }
+        val wallTiles = TestTileFactory.create40Wall()
+        val match = MatchBuilder().withWallTiles(wallTiles).withCustomPlayers(*players.toTypedArray()).build()
+        match.start().shouldBeSuccess()
+        
+        try {
+            match.startNextRound()
+            io.kotest.assertions.fail("Expected exception but none was thrown")
+        } catch (e: IllegalArgumentException) {
+            // Expected
+        }
+    }
+
+    test("isMatchOver returns true when currentRound >= totalRounds") {
+        val players = List(3) { DummyPlayer() }
+        val wallTiles = TestTileFactory.create40Wall()
+        val match = MatchBuilder().withWallTiles(wallTiles).withCustomPlayers(*players.toTypedArray()).build()
+        
+        match.isMatchOver shouldBe true
+    }
+
+    test("observation.availableActions handles null mask for current player") {
+        val players = List(3) { DummyPlayer() }
+        val wallTiles = TestTileFactory.create40Wall()
+        val match = MatchBuilder().withWallTiles(wallTiles).withCustomPlayers(*players.toTypedArray()).build()
+        match.start().shouldBeSuccess()
+        
+        val obs = match.observation
+        obs.availableActions shouldContain DiscardAction
+    }
+
+    test("Match.create assigns seats randomly when shuffleWinds is true") {
+        val players = List(3) { DummyPlayer() }
+        val wallTiles = TestTileFactory.create40Wall()
+        val ruleSet = createSimpleRuleSet(wallTiles)
+        
+        val result = Match.create(ruleSet, emptyList(), players, shuffleWinds = true)
+        result.shouldBeInstanceOf<Result.Success<Match>>()
+        
+        val match = (result as Result.Success).value
+        
+        val seats = players.map { it.seat }.toSet()
+        seats.size shouldBe 3
+        seats shouldContain StandardWind.EAST
+        seats shouldContain StandardWind.SOUTH
+        seats shouldContain StandardWind.WEST
+    }
 })

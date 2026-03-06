@@ -80,7 +80,8 @@ Then run:
 
 - **Yaku Required**: Hands must have at least one yaku to win
 - **Riichi**: Declare ready hand for 1000-point bet
-- **Dora**: Red five tiles count as dora
+- **Dora**: Red five tiles count as dora (aka-dora)
+- **Dora Indicators**: Revealed from dead wall, auto-revealed on kan actions
 - **Honba**: 300 points per counter stick on dealer repeats
 
 ## Available Actions
@@ -90,9 +91,9 @@ Then run:
 - **Ron**: Win by claiming another player's discard
 - **Riichi**: Declare ready hand (menzen only, 1000-point bet)
 - **Pon**: Claim a tile for an open triplet
-- **Ankan**: Declare a closed quad
-- **Minkan**: Declare an open quad
-- **Kakan**: Add a tile to complete a quad
+- **Ankan**: Declare a closed quad (reveals new dora indicator)
+- **Minkan**: Declare an open quad (reveals new dora indicator)
+- **Kakan**: Add a tile to complete a quad (reveals new dora indicator)
 - **Nuki-Pei**: Declare North wind to draw replacement tile (Ari-Ari sanma only)
 - **Pass**: Pass on the current opportunity
 

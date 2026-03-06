@@ -7,6 +7,7 @@
 kotlinxEcosystem = ["kotlinxDatetime", "kotlinxSerialization", "kotlinxCoroutines"]
 kotest = ["kotestRunner", "kotestAssertions", "kotestProperties"]
 djlWithPyTorch = ["djlApi", "djlPyTorch"]
+djlFull = ["djlApi", "djlPyTorch", "djlModelZoo"]
 
 [plugins]
 
@@ -57,6 +58,7 @@ djlApi = { module = "ai.djl:api", version.ref = "djlApi" }
 djlPyTorch = { module = "ai.djl.pytorch:pytorch-engine", version.ref = "djlApi" }
 djlPyTorchJni = { module = "ai.djl.pytorch:pytorch-jni", version.ref = "pyTorchJni" }
 djlPyTorchNativeCpu = { module = "ai.djl.pytorch:pytorch-native-cpu", version.ref = "pyTorchNative" }
+djlModelZoo = { module = "ai.djl:model-zoo", version.ref = "djlApi" }
 
 symbolProcessingApi = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kotlinPoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }

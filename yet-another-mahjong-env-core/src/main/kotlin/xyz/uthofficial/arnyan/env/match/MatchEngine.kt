@@ -62,6 +62,8 @@ internal class MatchEngine(
             } else {
                 stepResult
             }
+        
+        state.turnCount++
         finalStepResult
     }
 

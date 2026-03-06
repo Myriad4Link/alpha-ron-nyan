@@ -77,5 +77,6 @@ data class MatchObservation(
     val honbaSticks: Int = 0,
     val furitenPlayers: Set<Wind> = emptySet(),
     val temporaryFuritenPlayers: Set<Wind> = emptySet(),
-    val doraIndicators: List<Tile> = emptyList()
+    val doraIndicators: List<Tile> = emptyList(),
+    val turnCount: Int = 0
 )

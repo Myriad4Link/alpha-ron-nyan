@@ -12,6 +12,7 @@ interface TileWall : ReadOnlyTileWall {
     
     fun initializeDeadWall(deadWallSize: Int = 14)
     fun revealNextDoraIndicator(): Result<Tile, WallError>
+    fun revealRiichiDoraIndicator(): Result<Tile, WallError>
 
     interface Dealer {
         infix fun randomlyTo(players: List<Player>): Result<Unit, WallError>

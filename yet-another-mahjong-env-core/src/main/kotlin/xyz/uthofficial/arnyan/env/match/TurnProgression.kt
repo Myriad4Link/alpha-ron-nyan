@@ -172,6 +172,12 @@ internal class TurnProgression(
                 player.isRiichiDeclared = true
                 player.riichiSticksDeposited = 1
                 state.passedPlayers.clear()
+                
+                // Reveal lower tile on next stack as dora indicator
+                val riichiDora = state.wall.revealRiichiDoraIndicator()
+                if (riichiDora is xyz.uthofficial.arnyan.env.result.Result.Success) {
+                    state.doraIndicators.add(riichiDora.value)
+                }
             }
 
             xyz.uthofficial.arnyan.env.match.actions.Chii, 

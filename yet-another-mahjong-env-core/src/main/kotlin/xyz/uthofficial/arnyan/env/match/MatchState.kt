@@ -25,7 +25,8 @@ internal data class MatchState(
     val temporaryFuritenPlayers: MutableSet<Wind> = mutableSetOf(),
     var riichiSticks: Int = 0,
     var honbaSticks: Int = 0,
-    val doraIndicators: MutableList<Tile> = mutableListOf()
+    val doraIndicators: MutableList<Tile> = mutableListOf(),
+    var turnCount: Int = 0
 ) {
     init {
         topology.seats.forEach {
@@ -48,6 +49,7 @@ internal data class MatchState(
         honbaSticks = honbaSticks,
         furitenPlayers = furitenPlayers.toSet(),
         temporaryFuritenPlayers = temporaryFuritenPlayers.toSet(),
-        doraIndicators = doraIndicators.toList()
+        doraIndicators = doraIndicators.toList(),
+        turnCount = turnCount
     )
 }

@@ -22,4 +22,11 @@ sealed class Result<out T, out E : ArnyanError> {
             is Failure -> throw RuntimeException("Result failed: $error")
         }
     }
+
+    inline fun <F : ArnyanError> mapError(transform: (E) -> F): Result<T, F> {
+        return when (this) {
+            is Success -> Success(value)
+            is Failure -> Failure(transform(error))
+        }
+    }
 }

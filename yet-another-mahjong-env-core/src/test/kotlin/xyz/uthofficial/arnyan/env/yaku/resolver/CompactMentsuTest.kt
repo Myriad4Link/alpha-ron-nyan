@@ -64,39 +64,39 @@ class CompactMentsuTest : FunSpec({
 
 
 
-     test("pack masks tile index to 8 bits") {
-          val indices = intArrayOf(300)
-          val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-         val packed = CompactMentsu.pack(indices, typeIndex)
-         val compact = CompactMentsu(packed)
-         compact.tile1Index shouldBe 44
-     }
+    test("pack masks tile index to 8 bits") {
+        val indices = intArrayOf(300)
+        val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
+        val packed = CompactMentsu.pack(indices, typeIndex)
+        val compact = CompactMentsu(packed)
+        compact.tile1Index shouldBe 44
+    }
 
-     test("pack masks mentsu type index to 8 bits") {
-          val indices = tileIndices(Man to 1, Man to 1, Man to 1)
-          val typeIndex = 300
-         val packed = CompactMentsu.pack(indices, typeIndex)
-         val compact = CompactMentsu(packed)
-         compact.tile1Index shouldBe tileIndex(Man, 1)
-         compact.tile2Index shouldBe tileIndex(Man, 1)
-         compact.tile3Index shouldBe tileIndex(Man, 1)
-     }
+    test("pack masks mentsu type index to 8 bits") {
+        val indices = tileIndices(Man to 1, Man to 1, Man to 1)
+        val typeIndex = 300
+        val packed = CompactMentsu.pack(indices, typeIndex)
+        val compact = CompactMentsu(packed)
+        compact.tile1Index shouldBe tileIndex(Man, 1)
+        compact.tile2Index shouldBe tileIndex(Man, 1)
+        compact.tile3Index shouldBe tileIndex(Man, 1)
+    }
 
 
 
-     test("tiles property returns correct Tile objects") {
-          val indices = tileIndices(Wind to 1, Wind to 1, Wind to 1)
-          val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-         val packed = CompactMentsu.pack(indices, typeIndex)
- 
-         val compact = CompactMentsu(packed)
-         val tiles = compact.tiles
-         tiles.size shouldBe 3
-         tiles[0] shouldBe Tile(Wind, 1, false)
-         tiles[1] shouldBe Tile(Wind, 1, false)
-         tiles[2] shouldBe Tile(Wind, 1, false)
-         tiles.forEach { it.isAka shouldBe false }
-     }
+    test("tiles property returns correct Tile objects") {
+        val indices = tileIndices(Wind to 1, Wind to 1, Wind to 1)
+        val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
+        val packed = CompactMentsu.pack(indices, typeIndex)
+
+        val compact = CompactMentsu(packed)
+        val tiles = compact.tiles
+        tiles.size shouldBe 3
+        tiles[0] shouldBe Tile(Wind, 1, false)
+        tiles[1] shouldBe Tile(Wind, 1, false)
+        tiles[2] shouldBe Tile(Wind, 1, false)
+        tiles.forEach { it.isAka shouldBe false }
+    }
 
     test("tiles filters out zero indices") {
         val indices = intArrayOf(tileIndex(Man, 1), tileIndex(Man, 2))
@@ -109,28 +109,28 @@ class CompactMentsuTest : FunSpec({
         compact.tiles[1] shouldBe Tile(Man, 2, false)
     }
 
-      test("pack with maximum tile indices works") {
-           val indices = intArrayOf(33, 32, 31)
-           val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-          val packed = CompactMentsu.pack(indices, typeIndex, isOpen = true)
-  
-          val compact = CompactMentsu(packed)
-          compact.tile1Index shouldBe 31
-          compact.tile2Index shouldBe 32
-          compact.tile3Index shouldBe 33
-          compact.tile4Index shouldBe 0
-          compact.isOpen shouldBe true
-          compact.akas shouldBe emptyList()
-          compact.tiles.forEach { it.isAka shouldBe false }
-      }
+    test("pack with maximum tile indices works") {
+        val indices = intArrayOf(33, 32, 31)
+        val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
+        val packed = CompactMentsu.pack(indices, typeIndex, isOpen = true)
 
-     test("pack throws IllegalStateException for tile indices size > 4") {
-          val indices = intArrayOf(1, 2, 3, 4, 5) // size 5
-          val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
-          shouldThrow<IllegalStateException> {
-              CompactMentsu.pack(indices, typeIndex)
-         }
-     }
+        val compact = CompactMentsu(packed)
+        compact.tile1Index shouldBe 31
+        compact.tile2Index shouldBe 32
+        compact.tile3Index shouldBe 33
+        compact.tile4Index shouldBe 0
+        compact.isOpen shouldBe true
+        compact.akas shouldBe emptyList()
+        compact.tiles.forEach { it.isAka shouldBe false }
+    }
+
+    test("pack throws IllegalStateException for tile indices size > 4") {
+        val indices = intArrayOf(1, 2, 3, 4, 5) // size 5
+        val typeIndex = MentsuTypeRegistry.getIndex(Koutsu)
+        shouldThrow<IllegalStateException> {
+            CompactMentsu.pack(indices, typeIndex)
+        }
+    }
 
     test("pack with empty tile indices works") {
         val indices = intArrayOf()

@@ -61,14 +61,18 @@ class KSPProcessorTest : FunSpec({
         val tileClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.tile.Tile")
         val myTileClass = result.classLoader.loadClass("test.pkg.MyTile")
         val myTileInstance = myTileClass.getField("INSTANCE").get(null)
-        
+
         // Tile constructor: Tile(tileType: TileType, value: Int, isAka: Boolean = false)
         val tileConstructor = tileClass.constructors.first()
         val tileInstance = tileConstructor.newInstance(myTileInstance, 1, false)
 
         val getHistogramMethod = registryClass.getMethod("getHistogram", List::class.java, IntArray::class.java)
-        val histogram = getHistogramMethod.invoke(registryClass.kotlin.objectInstance, listOf(tileInstance), IntArray(1)) as IntArray
-        
+        val histogram = getHistogramMethod.invoke(
+            registryClass.kotlin.objectInstance,
+            listOf(tileInstance),
+            IntArray(1)
+        ) as IntArray
+
         histogram.size shouldBe 1
         histogram[0] shouldBe 1
     }
@@ -117,14 +121,14 @@ class KSPProcessorTest : FunSpec({
 
         // getTileType(3) -> TypeB. (Indices: TypeA[0,1,2], TypeB[3,4])
         // TypeA size 3 (1,2,3). Offsets: [0, 3].
-        
+
         val getTileTypeMethod = registryClass.getMethod("getTileType", Int::class.javaPrimitiveType)
-        
+
         getTileTypeMethod.invoke(instance, 0) shouldBe typeA
         getTileTypeMethod.invoke(instance, 2) shouldBe typeA
         getTileTypeMethod.invoke(instance, 3) shouldBe typeB
         getTileTypeMethod.invoke(instance, 4) shouldBe typeB
-        
+
         try {
             getTileTypeMethod.invoke(instance, 5)
         } catch (e: Exception) {
@@ -135,7 +139,7 @@ class KSPProcessorTest : FunSpec({
         val connectivityMaskProp = registryClass.getDeclaredMethod("getConnectivityMask")
         val connectivityMask = connectivityMaskProp.invoke(instance) as IntArray
         connectivityMask.size shouldBe 5 // 3 + 2
-        
+
         // TypeA (indices 0,1,2) mask 1 (sorted first)
         connectivityMask[0] shouldBe 1
         connectivityMask[1] shouldBe 1
@@ -147,14 +151,14 @@ class KSPProcessorTest : FunSpec({
         // getHistogram
         // Create list of tiles
         // TypeA ranges 1..3. Value 2 -> Index 0 + (2 - 1) = 1.
-        val t1 = tileCtor.newInstance(typeA, 2, false) 
+        val t1 = tileCtor.newInstance(typeA, 2, false)
         // TypeB ranges 5..6. Value 5 -> Index 3 + (5 - 5) = 3.
         val t2 = tileCtor.newInstance(typeB, 5, false)
         val list = listOf(t1, t2)
-        
+
         val getHistogramMethod = registryClass.getMethod("getHistogram", List::class.java, IntArray::class.java)
         val histogram = getHistogramMethod.invoke(instance, list, IntArray(5)) as IntArray
-        
+
         histogram.size shouldBe 5
         histogram[0] shouldBe 0
         histogram[1] shouldBe 1
@@ -187,7 +191,7 @@ class KSPProcessorTest : FunSpec({
         }
 
         val result = compilation.compile()
-        
+
         result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
         result.messages shouldContain "@RegisterTileType can only applied to objects"
     }
@@ -252,7 +256,7 @@ class KSPProcessorTest : FunSpec({
 
         val registryClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.generated.TileTypeRegistry")
         val instance = registryClass.kotlin.objectInstance!!
-        
+
         val typeAClass = result.classLoader.loadClass("test.pkg.SegmentTypeA")
         val typeBClass = result.classLoader.loadClass("test.pkg.SegmentTypeB")
         val typeA = typeAClass.getField("INSTANCE").get(null)
@@ -260,7 +264,7 @@ class KSPProcessorTest : FunSpec({
         val tileTypeClass = result.classLoader.loadClass("xyz.uthofficial.arnyan.env.tile.TileType")
 
         val getSegmentMethod = registryClass.getMethod("getSegment", tileTypeClass)
-        
+
         // Sorted: SegmentTypeA (A comes before B in 'test.pkg.SegmentTypeA' vs 'test.pkg.SegmentTypeB')
         // TypeA: size 5. Offset 0.
         // TypeB: size 10. Offset 5.
@@ -312,7 +316,7 @@ class KSPProcessorTest : FunSpec({
         val list = listOf(t1)
 
         val getHistogramMethod = registryClass.getMethod("getHistogram", List::class.java, IntArray::class.java)
-        
+
         // Size 1.
         val buffer = IntArray(1)
         buffer[0] = 99 // Set dirty
@@ -360,11 +364,11 @@ class KSPProcessorTest : FunSpec({
 
         val connectivityMaskProp = registryClass.getDeclaredMethod("getConnectivityMask")
         val connectivityMask = connectivityMaskProp.invoke(instance) as IntArray
-        
+
         // Sorted by qualified name: 
         // 1. test.pkg.ContinuousType (size 3) -> maskId = -(0+1) = -1
         // 2. test.pkg.NormalType (size 2) -> maskId = (1+1) = 2
-        
+
         connectivityMask.size shouldBe 5
         connectivityMask[0] shouldBe -1
         connectivityMask[1] shouldBe -1
@@ -499,7 +503,7 @@ class KSPProcessorTest : FunSpec({
         }
 
         val result = compilation.compile()
-        
+
         result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
         result.messages shouldContain "@RegisterMentsuType can only applied to objects"
     }

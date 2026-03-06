@@ -45,3 +45,9 @@ bin/
 .DS_Store
 /.idea/copilot.data.migration.ask.xml
 /.idea/copilot.data.migration.edit.xml
+
+### Windows ###
+nul
+
+### Utils ###
+extract.py

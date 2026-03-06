@@ -9,6 +9,10 @@ interface TileWall : ReadOnlyTileWall {
     fun addAll(tiles: Collection<Tile>): Boolean
     fun shuffle()
     fun draw(amount: Int): Result<List<Tile>, WallError>
+    
+    fun initializeDeadWall(deadWallSize: Int = 14)
+    fun revealNextDoraIndicator(): Result<Tile, WallError>
+    fun revealRiichiDoraIndicator(): Result<Tile, WallError>
 
     interface Dealer {
         infix fun randomlyTo(players: List<Player>): Result<Unit, WallError>

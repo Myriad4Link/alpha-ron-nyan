@@ -1,20 +1,22 @@
-package xyz.uthofficial.arnyan.env.yaku.resolver
+package xyz.uthofficial.arnyan.env.yaku.tenpai
 
 import xyz.uthofficial.arnyan.env.generated.TileTypeRegistry
+import xyz.uthofficial.arnyan.env.yaku.resolver.*
 
-class StandardFastTenpaiEvaluator(private val resolver: StandardFastTileResolver) {
+class StandardFastTenpaiEvaluator(private val resolver: TileResolver<IntArray, List<LongArray>>) :
+    TenpaiEvaluator<IntArray, Map<Int, List<LongArray>>> {
 
     private val validMentsuTypes = setOf(Shuntsu, Koutsu, Kantsu)
 
-    fun evaluate(histogram: IntArray): Map<Int, List<LongArray>> {
+    override fun evaluate(hand: IntArray): Map<Int, List<LongArray>> {
         val results = mutableMapOf<Int, List<LongArray>>()
 
         for (waitingIndex in 0 until TileTypeRegistry.SIZE) {
-            if (histogram[waitingIndex] >= 4) continue
+            if (hand[waitingIndex] >= 4) continue
 
-            histogram[waitingIndex]++
-            val mentsuArrangements = resolver.resolve(histogram)
-            histogram[waitingIndex]--
+            hand[waitingIndex]++
+            val mentsuArrangements = resolver.resolve(hand)
+            hand[waitingIndex]--
 
             val validArrangements = mentsuArrangements.filter { isTenpaiMentsus(it) }
             if (validArrangements.isNotEmpty()) {

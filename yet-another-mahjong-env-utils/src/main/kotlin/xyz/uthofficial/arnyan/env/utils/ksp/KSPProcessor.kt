@@ -9,11 +9,11 @@ import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import xyz.uthofficial.arnyan.env.tile.TileType
+import xyz.uthofficial.arnyan.env.utils.annotations.RegisterMentsuType
 import xyz.uthofficial.arnyan.env.utils.annotations.RegisterTileType
+import xyz.uthofficial.arnyan.env.utils.ksp.registry.MentsuTypeRegistryHandler
 import xyz.uthofficial.arnyan.env.utils.ksp.registry.TileTypeRegistryHandler
 import xyz.uthofficial.arnyan.env.yaku.resolver.MentsuType
-import xyz.uthofficial.arnyan.env.utils.annotations.RegisterMentsuType
-import xyz.uthofficial.arnyan.env.utils.ksp.registry.MentsuTypeRegistryHandler
 
 class KSPProcessor(private val codeGenerator: CodeGenerator, private val logger: KSPLogger) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {

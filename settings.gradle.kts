@@ -24,3 +24,5 @@ rootProject.name = "alpha-ron-nyan"
 include("yet-another-mahjong-env-core")
 include("yet-another-mahjong-env-utils")
 include("yet-another-mahjong-env-api")
+include("yet-another-mahjong-env-demo")
+include("alpha-ron-nyan-simplified")

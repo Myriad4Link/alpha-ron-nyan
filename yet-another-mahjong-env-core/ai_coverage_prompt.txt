@@ -1,0 +1,65 @@
+Here is a list of Kotlin files and the specific lines of code that are missing branch coverage. Please generate or update unit tests to cover these specific branches.
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\AnkanAction.kt
+  - Line 23 [Missing Branch Coverage (1 branch missed)]: `if (actor.seat != observation.currentSeatWind) return false`
+  - Line 26 [Missing Branch Coverage (1 branch missed)]: `if (lastAction !is LastAction.Draw) return false`
+  - Line 34 [Missing Branch Coverage (2 branch missed)]: `val actorSeat = actor.seat ?: Result.Failure<ActionError>(`
+  - Line 40 [Missing Branch Coverage (2 branch missed)]: `if (lastAction !is LastAction.Draw) {`
+  - Line 50 [Missing Branch Coverage (2 branch missed)]: `val fourTiles = findFourIdenticalTiles(actor.closeHand, subject)`
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\RonAction.kt
+  - Line 89 [Missing Branch Coverage (1 branch missed)]: `val seatWind = actor.seat ?: StandardWind.EAST`
+  - Line 113 [Missing Branch Coverage (2 branch missed)]: `val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()`
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\RiichiAction.kt
+  - Line 27 [Missing Branch Coverage (1 branch missed)]: `if (actor.seat != observation.currentSeatWind) return false`
+  - Line 72 [Missing Branch Coverage (1 branch missed)]: `if (actor.openHand.isNotEmpty()) {`
+  - Line 81 [Missing Branch Coverage (1 branch missed)]: `if (actor.isRiichiDeclared) {`
+  - Line 90 [Missing Branch Coverage (1 branch missed)]: `if (actor.score < 1000) {`
+  - Line 119 [Missing Branch Coverage (2 branch missed)]: `val playerDiscards = currentDiscards[actorSeat]?.toMutableList() ?: mutableListOf()`
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\KakanAction.kt
+  - Line 23 [Missing Branch Coverage (1 branch missed)]: `if (actor.seat != observation.currentSeatWind) return false`
+  - Line 26 [Missing Branch Coverage (1 branch missed)]: `if (lastAction !is LastAction.Draw) return false`
+  - Line 29 [Missing Branch Coverage (1 branch missed)]: `return existingPon != null`
+  - Line 34 [Missing Branch Coverage (2 branch missed)]: `val actorSeat = actor.seat ?: Result.Failure<ActionError>(`
+  - Line 40 [Missing Branch Coverage (2 branch missed)]: `if (lastAction !is LastAction.Draw) {`
+  - Line 50 [Missing Branch Coverage (2 branch missed)]: `val existingPonIndex = findExistingPonIndex(actor.openHand, subject)`
+  - Line 88 [Missing Branch Coverage (3 branch missed)]: `return openHand.find { group ->`
+  - Line 89 [Missing Branch Coverage (4 branch missed)]: `group.size == 3 && group.all { it.index() == subjectIdx }`
+  - Line 96 [Missing Branch Coverage (4 branch missed)]: `group.size == 3 && group.all { it.index() == subjectIdx }`
+  - Line 97 [Missing Branch Coverage (4 branch missed)]: `}.takeIf { it != -1 }`
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\MinkanAction.kt
+  - Line 24 [Missing Branch Coverage (1 branch missed)]: `if (lastAction !is LastAction.Discard) return false`
+  - Line 25 [Missing Branch Coverage (1 branch missed)]: `if (lastAction.tile != subject) return false`
+  - Line 35 [Missing Branch Coverage (2 branch missed)]: `val actorSeat = actor.seat ?: Result.Failure<ActionError>(`
+  - Line 40 [Missing Branch Coverage (2 branch missed)]: `if (lastAction !is LastAction.Discard) {`
+  - Line 49 [Missing Branch Coverage (2 branch missed)]: `if (lastAction.tile != subject) {`
+  - Line 60 [Missing Branch Coverage (2 branch missed)]: `val discardingSeat = discardingPlayer.seat ?: Result.Failure<ActionError>(`
+  - Line 64 [Missing Branch Coverage (2 branch missed)]: `if (discardingPlayer == actor) {`
+  - Line 74 [Missing Branch Coverage (2 branch missed)]: `val threeTiles = findThreeIdenticalTiles(actor.closeHand, subject)`
+  - Line 91 [Missing Branch Coverage (4 branch missed)]: `val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()`
+  - Line 93 [Missing Branch Coverage (2 branch missed)]: `if (lastIndex != -1) {`
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\ActionHelpers.kt
+  - Line 29 [Missing Branch Coverage (1 branch missed)]: `is xyz.uthofficial.arnyan.env.tile.Wind -> value + 29`
+  - Line 48 [Missing Branch Coverage (3 branch missed)]: `if (pattern.any { it < 0 || it >= TileTypeRegistry.SIZE }) continue`
+  - Line 144 [Missing Branch Coverage (1 branch missed)]: `return if (bestPartition != null) bestPartition to maxHan else null`
+  - Line 158 [Missing Branch Coverage (1 branch missed)]: `} else if (sorted[0] + 1 == sorted[1] && sorted[1] + 1 == sorted[2] &&`
+  - Line 159 [Missing Branch Coverage (2 branch missed)]: `sorted.all { TileTypeRegistry.connectivityMask[it] == TileTypeRegistry.connectivityMask[sorted[0]] }) {`
+  - Line 166 [Missing Branch Coverage (2 branch missed)]: `if (sorted[0] == sorted[1] && sorted[1] == sorted[2] && sorted[2] == sorted[3]) {`
+  - Line 191 [Missing Branch Coverage (1 branch missed)]: `val bestPartition = computeBestPartition(observation.yakuConfiguration,`
+  - Line 265 [Missing Branch Coverage (1 branch missed)]: `val seatWind = actor.seat ?: return false`
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\ChiiAction.kt
+  - Line 31 [Missing Branch Coverage (1 branch missed)]: `val kamicha = when (val result = observation.topology.getKamicha(discardingSeat)) {`
+  - Line 32 [Missing Branch Coverage (1 branch missed)]: `is Result.Success -> result.value`
+  - Line 112 [Missing Branch Coverage (2 branch missed)]: `val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()`
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\PonAction.kt
+  - Line 93 [Missing Branch Coverage (2 branch missed)]: `val playerDiscards = currentDiscards[discardingSeat]?.toMutableList() ?: mutableListOf()`
+
+### File: src/main/kotlin\xyz/uthofficial/arnyan/env/match/actions\TsuMoAction.kt
+  - Line 82 [Missing Branch Coverage (1 branch missed)]: `val seatWind = actor.seat ?: StandardWind.EAST`
+

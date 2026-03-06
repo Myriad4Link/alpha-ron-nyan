@@ -9,7 +9,7 @@ import xyz.uthofficial.arnyan.env.yaku.resolver.Kantsu
 
 class StandardKantsuStrategyTest : FunSpec({
     val registry = TileTypeRegistry
-    
+
     fun histogramOf(vararg tiles: Tile): IntArray {
         return registry.getHistogram(tiles.toList())
     }
@@ -23,7 +23,7 @@ class StandardKantsuStrategyTest : FunSpec({
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
 
         result shouldNotBe null
@@ -35,7 +35,7 @@ class StandardKantsuStrategyTest : FunSpec({
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
 
         result shouldBe null
@@ -47,80 +47,80 @@ class StandardKantsuStrategyTest : FunSpec({
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
 
         result shouldNotBe null
         histogram[index] shouldBe 1
     }
-    
+
     test("tryRemove should work for different tile types and values") {
         val histogram = histogramOf(
             Tile(Sou, 5), Tile(Sou, 5), Tile(Sou, 5), Tile(Sou, 5)
         )
         val souStart = segmentStart(Sou)
         val index = souStart + 4
-        
+
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
 
         result shouldNotBe null
         histogram[index] shouldBe 0
     }
-    
+
     test("tryRemove should work for honor tiles (Dragon)") {
         val histogram = histogramOf(
             Tile(Dragon, 1), Tile(Dragon, 1), Tile(Dragon, 1), Tile(Dragon, 1)
         )
         val index = segmentStart(Dragon) + 0
-        
+
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
 
         result shouldNotBe null
         histogram[index] shouldBe 0
     }
-    
+
     test("tryRemove should work for honor tiles (Wind)") {
         val histogram = histogramOf(
             Tile(Wind, 1), Tile(Wind, 1), Tile(Wind, 1), Tile(Wind, 1)
         )
         val index = segmentStart(Wind) + 0
-        
+
         val result = StandardKantsuStrategy.tryRemove(histogram, index)
 
         result shouldNotBe null
         histogram[index] shouldBe 0
     }
-    
+
     test("revert should restore histogram after successful tryRemove") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val removed = StandardKantsuStrategy.tryRemove(histogram, index)
         removed shouldNotBe null
         histogram[index] shouldBe 0
 
         StandardKantsuStrategy.revert(histogram, removed!!)
-        
+
         histogram[index] shouldBe 4
     }
-    
+
     test("revert should handle multiple increments correctly after partial removal") {
         val histogram = histogramOf(
             Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1), Tile(Man, 1)
         )
         val index = segmentStart(Man) + 0
-        
+
         val removed = StandardKantsuStrategy.tryRemove(histogram, index)
         removed shouldNotBe null
         histogram[index] shouldBe 2
 
         StandardKantsuStrategy.revert(histogram, removed!!)
-        
+
         histogram[index] shouldBe 6
     }
-    
+
     test("type property should return Kantsu") {
         StandardKantsuStrategy.type shouldBe Kantsu
     }

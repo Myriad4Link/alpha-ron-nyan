@@ -1,27 +1,38 @@
 package xyz.uthofficial.arnyan.env.ruleset
 
+import xyz.uthofficial.arnyan.env.ruleset.base.PlayerWindRotationRule
+import xyz.uthofficial.arnyan.env.ruleset.base.RoundWindRotationRule
 import xyz.uthofficial.arnyan.env.ruleset.base.WallGenerationRule
-import xyz.uthofficial.arnyan.env.ruleset.base.WindRotationRule
-import xyz.uthofficial.arnyan.env.wind.StandardWind.*
+import xyz.uthofficial.arnyan.env.ruleset.base.YakuRule
+import xyz.uthofficial.arnyan.env.ruleset.base.ScoringRule
+import xyz.uthofficial.arnyan.env.tile.*
+import xyz.uthofficial.arnyan.env.tile.dsl.allOf
+import xyz.uthofficial.arnyan.env.tile.dsl.and
+import xyz.uthofficial.arnyan.env.tile.dsl.of
 import xyz.uthofficial.arnyan.env.wind.PlayerSeatWindRotationConfiguration
-import xyz.uthofficial.arnyan.env.tile.TileSetConfiguration
-import xyz.uthofficial.arnyan.env.tile.Man
-import xyz.uthofficial.arnyan.env.tile.Sou
-import xyz.uthofficial.arnyan.env.tile.Pin
-import xyz.uthofficial.arnyan.env.tile.Wind
-import xyz.uthofficial.arnyan.env.tile.Dragon
-import xyz.uthofficial.arnyan.env.tile.dsl.*
+import xyz.uthofficial.arnyan.env.wind.RoundWindRotationConfiguration
+import xyz.uthofficial.arnyan.env.wind.StandardWind.*
+import xyz.uthofficial.arnyan.env.yaku.StandardYakuRule
+import xyz.uthofficial.arnyan.env.scoring.StandardScoringRule
 
 data class RuleSet(
     val wallGenerationRule: WallGenerationRule,
-    val playerWindRotationOrderRule: WindRotationRule
+    val playerWindRotationOrderRule: PlayerWindRotationRule,
+    val roundWindRotationRule: RoundWindRotationRule = {
+        RoundWindRotationConfiguration().apply {
+            EAST * 4
+            SOUTH * 4
+        }.build()
+    },
+    val yakuRule: YakuRule = StandardYakuRule,
+    val scoringRule: ScoringRule = StandardScoringRule
 ) {
     companion object {
-        val RIICHI_SANMA_TENHOU = RuleSet(
+        val RIICHI_SANMA_ARI_ARI = RuleSet(
             wallGenerationRule = {
                 (TileSetConfiguration()
                     .setGroup {
-                        allOf(Sou and Pin and Wind and Dragon) + (listOf(1, 9) of Man)
+                        allOf(Sou and Pin and Dragon) + (listOf(1, 9) of Man) + (listOf(1, 2, 3, 4) of Wind)
                     } repeatFor 4 whereEvery { Sou and Pin } has 1 redDoraOn 5)
                     .build()
             },
@@ -29,7 +40,14 @@ data class RuleSet(
                 PlayerSeatWindRotationConfiguration().apply {
                     EAST - SOUTH - WEST
                 }.build()
-            }
+            },
+            roundWindRotationRule = {
+                RoundWindRotationConfiguration().apply {
+                    EAST * 4
+                }.build()
+            },
+            yakuRule = StandardYakuRule,
+            scoringRule = StandardScoringRule
         )
     }
 }

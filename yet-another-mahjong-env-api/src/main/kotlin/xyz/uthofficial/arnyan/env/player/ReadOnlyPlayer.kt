@@ -2,12 +2,17 @@ package xyz.uthofficial.arnyan.env.player
 
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.Wind
-import java.util.UUID
+import xyz.uthofficial.arnyan.env.yaku.resolver.Mentsu
+import java.util.*
 
 interface ReadOnlyPlayer {
     val id: UUID
-    val hand: List<Tile>
+    val closeHand: List<Tile>
+    val openHand: List<List<Tile>>
+    val currentMentsusComposition: List<List<Mentsu>>
     val seat: Wind?
+    val score: Int
+    val nukiCount: Int
 }
 
 infix fun <T : ReadOnlyPlayer> List<T>.getPlayerSitAt(wind: Wind): T = first { it.seat == wind }

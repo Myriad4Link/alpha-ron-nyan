@@ -11,11 +11,21 @@ import xyz.uthofficial.arnyan.simplified.agent.EvolutionaryAgent
 import xyz.uthofficial.arnyan.simplified.network.SanmaPolicyNetwork
 import xyz.uthofficial.arnyan.simplified.util.AgentWeightSerializer
 import xyz.uthofficial.arnyan.simplified.util.CheckpointMetadata
+import xyz.uthofficial.arnyan.simplified.util.GenerationMetrics
+import xyz.uthofficial.arnyan.simplified.util.MetricUpdate
+import xyz.uthofficial.arnyan.simplified.util.OffspringEvaluation
+import xyz.uthofficial.arnyan.simplified.util.RealTimeGrapher
 import xyz.uthofficial.arnyan.simplified.util.TrainingProgressTracker
+import xyz.uthofficial.arnyan.simplified.util.WeightStatistics
 import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.math.sqrt
 
-class EvolutionaryTrainer(private val config: EvolutionConfig) {
+class EvolutionaryTrainer(
+    private val config: EvolutionConfig,
+    private val grapher: RealTimeGrapher? = null,
+    private val resumeFrom: Path? = null
+) {
 
     private val logger = LoggerFactory.getLogger(EvolutionaryTrainer::class.java)
     private val matchSimulator = MatchSimulator()
@@ -27,6 +37,7 @@ class EvolutionaryTrainer(private val config: EvolutionConfig) {
     private lateinit var parent: EvolutionaryAgent
     private var currentSigma = config.initialMutationSigma
     private var bestFitnessEver = -Float.MAX_VALUE
+    private var startGeneration = 0
 
     fun train() {
         logger.info("Starting evolutionary training with config: $config")
@@ -36,27 +47,28 @@ class EvolutionaryTrainer(private val config: EvolutionConfig) {
 
         Files.createDirectories(config.checkpointDir)
 
-        parent = initializeParent()
+        val initResult = initializeParent()
+        parent = initResult.first
+        startGeneration = initResult.second
 
         logger.info("Parent initialized with ${parent.network.countParameters()} parameters")
+        if (startGeneration > 0) {
+            logger.info("Resumed from generation $startGeneration, sigma=$currentSigma, bestFitness=$bestFitnessEver")
+        }
+        
+        grapher?.update(MetricUpdate.WeightsUpdated(calculateWeightStats(startGeneration, parent)))
 
         runBlocking {
-            for (generation in 1..config.maxGenerations) {
+            for (generation in (startGeneration + 1)..config.maxGenerations) {
                 logger.info("=== Generation $generation ===")
 
                 val parentFitness = evaluateAgent(parent)
                 logger.info("Parent fitness: $parentFitness")
 
-                if (parentFitness > bestFitnessEver) {
-                    bestFitnessEver = parentFitness
-                    logger.info("New best fitness ever: $bestFitnessEver")
-                }
-
                 val offspring = generateOffspring(parent, currentSigma)
                 logger.info("Generated ${offspring.size} offspring")
 
-                val offspringFitness = evaluateOffspring(offspring)
-                logger.info("Offspring fitness: min=${offspringFitness.minOrNull()}, max=${offspringFitness.maxOrNull()}, avg=${offspringFitness.average()}")
+                val offspringFitness = evaluateOffspringWithCallbacks(offspring, generation)
 
                 val bestOffspringIdx = offspringFitness.indices.maxByOrNull { offspringFitness[it] } ?: 0
                 val bestOffspringFitness = offspringFitness[bestOffspringIdx]
@@ -68,7 +80,26 @@ class EvolutionaryTrainer(private val config: EvolutionConfig) {
                     logger.info("Parent survives ($parentFitness >= $bestOffspringFitness)")
                 }
 
+                if (parentFitness > bestFitnessEver) {
+                    bestFitnessEver = parentFitness
+                    logger.info("New best fitness ever: $bestFitnessEver")
+                    saveBestEverCheckpoint(generation, bestFitnessEver)
+                }
+
                 progressTracker.record(generation, parentFitness, offspringFitness.average().toFloat(), currentSigma)
+                
+                grapher?.update(
+                    MetricUpdate.GenerationComplete(
+                        GenerationMetrics(
+                            generation = generation,
+                            parentFitness = parentFitness,
+                            offspringFitnesses = offspringFitness,
+                            mutationSigma = currentSigma
+                        )
+                    )
+                )
+                
+                grapher?.update(MetricUpdate.WeightsUpdated(calculateWeightStats(generation, parent)))
 
                 if (generation % config.checkpointInterval == 0) {
                     saveCheckpoint(generation, parentFitness)
@@ -82,23 +113,66 @@ class EvolutionaryTrainer(private val config: EvolutionConfig) {
 
         saveCheckpoint(config.maxGenerations, bestFitnessEver)
         progressTracker.exportCSV()
+        
+        grapher?.update(MetricUpdate.TrainingComplete)
 
         logger.info("Training complete! Best fitness: $bestFitnessEver")
         logger.info("Checkpoint saved to: ${config.checkpointDir}")
     }
 
-    private fun initializeParent(): EvolutionaryAgent {
+    private fun calculateWeightStats(generation: Int, agent: EvolutionaryAgent): WeightStatistics {
+        val weights = agent.network.getWeights()
+        val mean = weights.average().toFloat()
+        val variance = weights.map { (it - mean) * (it - mean) }.average().toFloat()
+        val stdDev = sqrt(variance)
+        val min = weights.minOrNull() ?: 0f
+        val max = weights.maxOrNull() ?: 0f
+        
+        val numBins = 20
+        val binWidth = (max - min) / numBins
+        val histogram = IntArray(numBins)
+        
+        weights.forEach { weight ->
+            val binIndex = ((weight - min) / binWidth).toInt().coerceIn(0, numBins - 1)
+            histogram[binIndex]++
+        }
+        
+        val binEdges = FloatArray(numBins + 1) { i ->
+            min + (i * binWidth)
+        }
+        
+        return WeightStatistics(
+            generation = generation,
+            mean = mean,
+            stdDev = stdDev,
+            min = min,
+            max = max,
+            histogram = histogram,
+            binEdges = binEdges
+        )
+    }
+
+    private fun initializeParent(): Pair<EvolutionaryAgent, Int> {
+        if (resumeFrom != null && Files.exists(resumeFrom)) {
+            logger.info("Loading checkpoint from: $resumeFrom")
+            val (agent, metadata) = AgentWeightSerializer.load(resumeFrom, SanmaPolicyNetwork())
+            currentSigma = metadata.mutationSigma
+            bestFitnessEver = metadata.bestFitnessEver
+            return agent to metadata.generation
+        }
+
         val network = SanmaPolicyNetwork()
         val initialWeights = FloatArray(network.countParameters()) {
             kotlin.random.Random.nextFloat() * 0.1f - 0.05f
         }
         network.setWeights(initialWeights)
 
-        return EvolutionaryAgent(
+        val agent = EvolutionaryAgent(
             network = network,
             playstyle = config.playstyle,
             temperature = 1.0f
         )
+        return agent to 0
     }
 
     private suspend fun evaluateAgent(agent: EvolutionaryAgent): Float {
@@ -127,12 +201,25 @@ class EvolutionaryTrainer(private val config: EvolutionConfig) {
         return (sqrt(-2.0 * kotlin.math.ln(u1.coerceAtLeast(1e-10f))) * kotlin.math.cos(2.0 * kotlin.math.PI * u2)).toFloat()
     }
 
-    private suspend fun evaluateOffspring(offspring: List<EvolutionaryAgent>): List<Float> {
+    private suspend fun evaluateOffspringWithCallbacks(offspring: List<EvolutionaryAgent>, generation: Int): List<Float> {
         return kotlinx.coroutines.coroutineScope {
-            offspring.map { agent ->
+            offspring.mapIndexed { index, agent ->
                 async(Dispatchers.IO.limitedParallelism(config.parallelMatches)) {
                     val opponents = matchSimulator.createRandomOpponents(2)
-                    matchSimulator.evaluateAgent(agent, opponents, config.gamesPerEvaluation, fitnessCalculator)
+                    val fitness = matchSimulator.evaluateAgent(agent, opponents, config.gamesPerEvaluation, fitnessCalculator)
+                    
+                    grapher?.update(
+                        MetricUpdate.OffspringEvaluated(
+                            OffspringEvaluation(
+                                generation = generation,
+                                offspringIndex = index,
+                                fitness = fitness,
+                                gamesPlayed = config.gamesPerEvaluation
+                            )
+                        )
+                    )
+                    
+                    fitness
                 }
             }.awaitAll()
         }
@@ -151,6 +238,21 @@ class EvolutionaryTrainer(private val config: EvolutionConfig) {
 
         AgentWeightSerializer.save(parent, checkpointPath, metadata)
         logger.info("Checkpoint saved: $checkpointPath")
+    }
+
+    private fun saveBestEverCheckpoint(generation: Int, fitness: Float) {
+        val bestEverPath = config.checkpointDir.resolve("best_ever.bin")
+        val metadata = CheckpointMetadata(
+            generation = generation,
+            fitness = fitness,
+            playstyle = config.playstyle,
+            timestamp = System.currentTimeMillis(),
+            mutationSigma = currentSigma,
+            bestFitnessEver = fitness
+        )
+
+        AgentWeightSerializer.save(parent, bestEverPath, metadata)
+        logger.info("Best-ever checkpoint saved: $bestEverPath (fitness: $fitness)")
     }
 
     fun getParent(): EvolutionaryAgent = parent

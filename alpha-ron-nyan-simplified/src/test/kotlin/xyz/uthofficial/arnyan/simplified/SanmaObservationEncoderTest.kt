@@ -62,7 +62,7 @@ class SanmaObservationEncoderTest : FunSpec({
         }
     }
     
-    test("channel 0 should encode closed hand counts") {
+    test("channel 0 should encode closed hand counts (normalized)") {
         val encoder = SanmaObservationEncoder()
         val players = listOf(
             TestPlayer(score = 25000),
@@ -88,8 +88,8 @@ class SanmaObservationEncoderTest : FunSpec({
             val channel0Data = FloatArray(27) { i -> tensor.getFloat(0, i.toLong()) }
             val sum = channel0Data.sum()
             
-            sum shouldBeGreaterThanOrEqualTo 13f
-            sum shouldBeLessThanOrEqualTo 14f
+            sum shouldBeGreaterThanOrEqualTo 3.25f
+            sum shouldBeLessThanOrEqualTo 3.5f
         }
     }
     

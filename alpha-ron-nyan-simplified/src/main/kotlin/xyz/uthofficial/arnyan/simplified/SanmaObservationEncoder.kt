@@ -11,7 +11,6 @@ import xyz.uthofficial.arnyan.env.player.Player
 import xyz.uthofficial.arnyan.env.tile.Tile
 import xyz.uthofficial.arnyan.env.wind.StandardWind
 import xyz.uthofficial.arnyan.env.wind.Wind
-import xyz.uthofficial.arnyan.env.yaku.DoraCalculator
 import xyz.uthofficial.arnyan.env.yaku.DoraCalculator.index
 
 /**
@@ -24,11 +23,11 @@ import xyz.uthofficial.arnyan.env.yaku.DoraCalculator.index
  * - 27 tile types (sanma tile set)
  * 
  * Channel breakdown:
- * 0. Closed hand count (0-4 tiles of each type)
- * 1. Open hand count (0-4 tiles of each type in exposed mentsus)
- * 2. My discards (0-4 tiles of each type discarded)
- * 3. Visible tiles ratio ((opened + discarded + dora) / 4.0)
- * 4. Dora value (1.0 if tile is dora, 0.0 otherwise; includes aka 5p/5s)
+ * 0. Closed hand count (normalized: count/4, range 0-1)
+ * 1. Open hand count (normalized: count/4, range 0-1)
+ * 2. My discards (normalized: count/4, range 0-1)
+ * 3. Visible tiles ratio ((opened + discarded + dora) / 4.0, range 0-1)
+ * 4. Dora value (binary: 1.0 if dora, 0.0 otherwise; includes aka 5p/5s)
  * 5. Round wind (one-hot: E=0, S=1, W=2)
  * 6. Seat wind (one-hot: E=0, S=1, W=2)
  * 7. Riichi state (which seats declared riichi: E=0, S=1, W=2)
@@ -41,7 +40,6 @@ class SanmaObservationEncoder {
     companion object {
         const val CHANNEL_COUNT = 11
         const val TILE_COUNT = 27
-        const val ACTION_TYPE_COUNT = 11
     }
     
     /**
@@ -64,19 +62,19 @@ class SanmaObservationEncoder {
         val openHandHist = buildOpenHandHistogram(player.openHand)
         val myDiscardsHist = buildTileHistogram(observation.discards[player.seat] ?: emptyList())
         
-        // Channel 0: Closed hand count
+        // Channel 0: Closed hand count (normalized by 4)
         for (i in 0 until TILE_COUNT) {
-            tensor.set(NDIndex("0, $i"), closedHandHist[i].toFloat())
+            tensor.set(NDIndex("0, $i"), closedHandHist[i] / 4.0f)
         }
         
-        // Channel 1: Open hand count
+        // Channel 1: Open hand count (normalized by 4)
         for (i in 0 until TILE_COUNT) {
-            tensor.set(NDIndex("1, $i"), openHandHist[i].toFloat())
+            tensor.set(NDIndex("1, $i"), openHandHist[i] / 4.0f)
         }
         
-        // Channel 2: My discards
+        // Channel 2: My discards (normalized by 4)
         for (i in 0 until TILE_COUNT) {
-            tensor.set(NDIndex("2, $i"), myDiscardsHist[i].toFloat())
+            tensor.set(NDIndex("2, $i"), myDiscardsHist[i] / 4.0f)
         }
         
         // Channel 3: Visible tiles ratio

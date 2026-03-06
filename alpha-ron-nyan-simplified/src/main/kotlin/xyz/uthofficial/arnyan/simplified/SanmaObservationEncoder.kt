@@ -31,8 +31,8 @@ import xyz.uthofficial.arnyan.env.yaku.DoraCalculator.index
  * 5. Round wind (one-hot: E=0, S=1, W=2)
  * 6. Seat wind (one-hot: E=0, S=1, W=2)
  * 7. Riichi state (which seats declared riichi: E=0, S=1, W=2)
- * 8. Turn counter (turnCount / 18.0, normalized)
- * 9. Score difference ((myScore - avgOpponent) / 25000)
+ * 8. Turn counter (turnCount / 72.0, range 0-1)
+ * 9. Score difference (0.5 = tied, 1.0 = ahead, 0.0 = behind)
  * 10. Available actions (binary mask for 11 action types, indices 11-26 zero-padded)
  */
 class SanmaObservationEncoder {
@@ -40,7 +40,7 @@ class SanmaObservationEncoder {
     companion object {
         const val CHANNEL_COUNT = 11
         const val TILE_COUNT = 27
-    }
+        }
     
     /**
      * Encodes the match observation into a tensor for CNN processing.
@@ -101,13 +101,13 @@ class SanmaObservationEncoder {
         // Channel 7: Riichi state (which seats declared riichi)
         encodeRiichiState(tensor, 7, observation, player)
         
-        // Channel 8: Turn counter (normalized by 18)
-        val turnNormalized = (observation.turnCount / 18.0f).coerceIn(0f, 3f)
+        // Channel 8: Turn counter (normalized to [0-1])
+        val turnNormalized = (observation.turnCount / 72.0f).coerceIn(0f, 1f)
         for (i in 0 until TILE_COUNT) {
             tensor.set(NDIndex("8, $i"), turnNormalized)
         }
         
-        // Channel 9: Score difference
+        // Channel 9: Score difference (normalized to [0-1])
         val scoreDiff = calculateScoreDifference(observation, player)
         for (i in 0 until TILE_COUNT) {
             tensor.set(NDIndex("9, $i"), scoreDiff)
@@ -241,7 +241,7 @@ class SanmaObservationEncoder {
     
     /**
      * Calculates score difference from perspective player's viewpoint.
-     * Normalized by 25000.
+     * Normalized to [0-1] where 0.5 = tied, 1.0 = far ahead, 0.0 = far behind.
      */
     private fun calculateScoreDifference(observation: MatchObservation, player: Player): Float {
         val myScore = player.score
@@ -252,7 +252,7 @@ class SanmaObservationEncoder {
         val avgOpponentScore = opponentScores.average().toFloat()
         val diff = myScore - avgOpponentScore
         
-        return (diff / 25000f).coerceIn(-3f, 3f)
+        return ((diff / 50000f) + 0.5f).coerceIn(0f, 1f)
     }
     
     /**

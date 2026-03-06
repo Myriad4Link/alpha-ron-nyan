@@ -189,7 +189,7 @@ class SanmaObservationEncoderTest : FunSpec({
         }
     }
     
-    test("channel 9 should encode score difference") {
+    test("channel 9 should encode score difference (normalized to [0-1])") {
         val encoder = SanmaObservationEncoder()
         val players = listOf(
             TestPlayer(score = 30000),
@@ -213,7 +213,8 @@ class SanmaObservationEncoderTest : FunSpec({
             val tensor = encoder.encode(manager, observation, player)
             
             val scoreValue = tensor.getFloat(9, 0)
-            scoreValue shouldBeGreaterThan 0f
+            scoreValue shouldBeGreaterThan 0.5f
+            scoreValue shouldBeLessThanOrEqualTo 1.0f
             
             for (i in 0 until 27) {
                 tensor.getFloat(9, i.toLong()) shouldBe scoreValue
@@ -221,7 +222,7 @@ class SanmaObservationEncoderTest : FunSpec({
         }
     }
     
-    test("channel 8 should encode turn counter") {
+    test("channel 8 should encode turn counter (normalized to [0-1])") {
         val encoder = SanmaObservationEncoder()
         val players = listOf(
             TestPlayer(score = 25000),
@@ -246,6 +247,7 @@ class SanmaObservationEncoderTest : FunSpec({
             
             val turnValue = tensor.getFloat(8, 0)
             turnValue shouldBeGreaterThanOrEqualTo 0f
+            turnValue shouldBeLessThanOrEqualTo 1f
             
             for (i in 0 until 27) {
                 tensor.getFloat(8, i.toLong()) shouldBe turnValue
